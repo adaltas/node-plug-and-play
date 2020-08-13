@@ -1,0 +1,80 @@
+{
+  "name": "plugable",
+  "version": "0.0.0",
+  "author": "David Worms <david@adaltas.com>",
+  "bugs": {
+    "url": "https://github.com/adaltas/node-plugable/issues"
+  },
+  "coffeelintConfig": {
+    "indentation": {
+      "level": "error",
+      "value": 2
+    },
+    "line_endings": {
+      "level": "error",
+      "value": "unix"
+    },
+    "max_line_length": {
+      "level": "ignore"
+    },
+    "no_backticks": {
+      "level": "ignore"
+    },
+    "no_nested_string_interpolation": {
+      "level": "ignore"
+    }
+  },
+  "dependencies": {
+    "mixme": "^0.3.5",
+    "toposort": "^2.0.2"
+  },
+  "description": "Easily create hooks and let users plug their own logic across your code to make it extensible by everyone with new features.",
+  "devDependencies": {
+    "coffeescript": "^2.5.1",
+    "eslint": "^7.6.0",
+    "eslint-plugin-coffee": "^0.1.12",
+    "mocha": "8.1.1",
+    "should": "~13.2.3"
+  },
+  "homepage": "https://github.com/adaltas/node-plugable#readme",
+  "keywords": [
+    "plugin",
+    "extension",
+    "hook",
+    "library",
+    "extend",
+    "plug",
+    "intercept",
+    "flexibility"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "mocha": {
+    "throw-deprecation": true,
+    "require": [
+      "should",
+      "coffeescript/register"
+    ],
+    "inline-diffs": true,
+    "timeout": 40000,
+    "reporter": "spec",
+    "recursive": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adaltas/node-plugable.git"
+  },
+  "scripts": {
+    "preversion": "grep '## Trunk' CHANGELOG.md && rm -rf lib && npm test",
+    "version": "version=`grep '^  \"version\": ' package.json | sed 's/.*\"\\([0-9\\.]*\\)\".*/\\1/'` && sed -i \"s/## Trunk/## Version $version/\" CHANGELOG.md && git add CHANGELOG.md",
+    "postversion": "git push && git push --tags && npm publish",
+    "patch": "npm version patch -m 'Bump to version %s'",
+    "minor": "npm version minor -m 'Bump to version %s'",
+    "major": "npm version major -m 'Bump to version %s'",
+    "build": "coffee -b -o lib src",
+    "lint": "eslint 'src/**/*.coffee'",
+    "lint-fix": "eslint --fix 'src/**/*.coffee'",
+    "pretest": "npm run build",
+    "test": "mocha 'test/**/*.coffee'"
+  }
+}
