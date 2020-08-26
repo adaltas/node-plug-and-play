@@ -21,15 +21,16 @@ describe 'plugable.get', ->
 
   it 'after and before as function', ->
     plugins = plugable()
-    plugins.register module: 'module/after', hooks: 'my:hook': (->)
-    plugins.register module: 'module/before', hooks: 'my:hook': (->)
+    plugins.register name: 'module/after', hooks: 'my:hook': (->)
+    plugins.register name: 'module/before', hooks: 'my:hook': (->)
     plugins.register
-      module: 'module/origin'
+      name: 'module/origin'
       hooks: 'my:hook':
-        after: 'module/after', before: 'module/before'
+        after: 'module/after'
+        before: 'module/before'
         handler: (->)
     plugins.get name: 'my:hook'
-    .map (hook) -> hook.module
+    .map (hook) -> hook.plugin
     .should.eql [
       'module/after', 'module/origin', 'module/before'
     ]

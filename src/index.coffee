@@ -47,7 +47,7 @@ module.exports = ({action, chain, parent, plugins = []} = {}) ->
           continue unless plugin.hooks[name]
           for hook in plugin.hooks[name]
             merge
-              module: plugin.module
+              plugin: plugin.name
             , hook
         )
         ...if parent
@@ -57,21 +57,21 @@ module.exports = ({action, chain, parent, plugins = []} = {}) ->
       return hooks unless sort
       # Topological sort
       index = {}
-      index[hook.module] = hook for hook in hooks
+      index[hook.plugin] = hook for hook in hooks
       edges_after = for hook in hooks
         continue unless hook.after
         for after in hook.after
           # This check assume the plugin has the same hooks which is not always the case
           unless index[after]
             throw errors.PLUGINS_HOOK_AFTER_INVALID
-              name: name, module: hook.module, after: after
+              name: name, plugin: hook.plugin, after: after
           [index[after], hook]
       edges_before = for hook in hooks
         continue unless hook.before
         for before in hook.before
           unless index[before]
             throw errors.PLUGINS_HOOK_BEFORE_INVALID
-              name: name, module: hook.module, before: before
+              name: name, plugin: hook.plugin, before: before
           [hook, index[before]]
       edges = [...edges_after, ...edges_before]
       edges = array_flatten edges, 0
@@ -111,17 +111,17 @@ module.exports = ({action, chain, parent, plugins = []} = {}) ->
   obj
 
 errors =
-  PLUGINS_HOOK_AFTER_INVALID: ({name, module, after}) ->
+  PLUGINS_HOOK_AFTER_INVALID: ({name, plugin, after}) ->
     throw error 'PLUGINS_HOOK_AFTER_INVALID', [
       "the hook #{JSON.stringify name}"
-      "in plugin #{JSON.stringify module}" if module
+      "in plugin #{JSON.stringify plugin}" if plugin
       'references an after dependency'
       "in plugin #{JSON.stringify after} which does not exists"
     ]
-  PLUGINS_HOOK_BEFORE_INVALID: ({name, module, before}) ->
+  PLUGINS_HOOK_BEFORE_INVALID: ({name, plugin, before}) ->
     throw error 'PLUGINS_HOOK_BEFORE_INVALID', [
       "the hook #{JSON.stringify name}"
-      "in plugin #{JSON.stringify module}" if module
+      "in plugin #{JSON.stringify plugin}" if plugin
       'references a before dependency'
       "in plugin #{JSON.stringify before} which does not exists"
     ]
