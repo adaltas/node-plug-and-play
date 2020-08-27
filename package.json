@@ -1,6 +1,6 @@
 {
   "name": "plug-and-play",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "author": "David Worms <david@adaltas.com>",
   "bugs": {
     "url": "https://github.com/adaltas/node-plug-and-play/issues"
