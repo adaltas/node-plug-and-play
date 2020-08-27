@@ -1,13 +1,13 @@
 
-plugable = require '../src'
+plugandplay = require '../src'
 
-describe 'plugable.register', ->
+describe 'plugandplay.register', ->
   
   describe 'errors', ->
 
     it 'when plugin not an object but a function', ->
       (->
-        plugable().register (->)
+        plugandplay().register (->)
       ).should.throw [
         'PLUGINS_REGISTER_INVALID_ARGUMENT:'
         'a plugin must be an object literal'
@@ -17,7 +17,7 @@ describe 'plugable.register', ->
 
     it 'when hooks is neither a function nor a object literal', ->
       ( ->
-        plugins = plugable()
+        plugins = plugandplay()
         plugins.register hooks: 'my:hook': 'ohno'
       ).should.throw [
         'PLUGINS_HOOK_INVALID_HANDLER:'

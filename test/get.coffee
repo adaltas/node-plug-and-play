@@ -1,26 +1,26 @@
 
-plugable = require '../src'
+plugandplay = require '../src'
 
-describe 'plugable.get', ->
+describe 'plugandplay.get', ->
 
   it 'root level', ->
-    plugins = plugable()
+    plugins = plugandplay()
     plugins.register hooks: 'my:hook': -> 1
     plugins.register hooks: 'my:hook': -> 2
     plugins.get name: 'my:hook'
     .map((hook) -> hook.handler.call()).should.eql [1, 2]
 
   it 'with parent', ->
-    parent = plugable()
+    parent = plugandplay()
     parent.register hooks: 'my:hook': -> 3
-    child = plugable parent: parent
+    child = plugandplay parent: parent
     child.register hooks: 'my:hook': -> 1
     child.register hooks: 'my:hook': -> 2
     child.get name: 'my:hook'
     .map((hook) -> hook.handler.call()).should.eql [1, 2, 3]
 
   it 'after and before as function', ->
-    plugins = plugable()
+    plugins = plugandplay()
     plugins.register name: 'module/after', hooks: 'my:hook': (->)
     plugins.register name: 'module/before', hooks: 'my:hook': (->)
     plugins.register
@@ -39,7 +39,7 @@ describe 'plugable.get', ->
 
     it 'when plugin exists but no matching hook is exposed', ->
       (->
-        plugins = plugable()
+        plugins = plugandplay()
         plugins.register name: 'module/after'
         plugins.register
           hooks: 'my:hook':
@@ -55,7 +55,7 @@ describe 'plugable.get', ->
 
     it 'when plugin does not exists', ->
       (->
-        plugins = plugable()
+        plugins = plugandplay()
         plugins.register
           hooks: 'my:hook':
             before: 'module/before'

@@ -1,9 +1,9 @@
 {
-  "name": "plugable",
+  "name": "plug-and-play",
   "version": "0.0.0",
   "author": "David Worms <david@adaltas.com>",
   "bugs": {
-    "url": "https://github.com/adaltas/node-plugable/issues"
+    "url": "https://github.com/adaltas/node-plug-and-play/issues"
   },
   "coffeelintConfig": {
     "indentation": {
@@ -36,7 +36,7 @@
     "mocha": "8.1.1",
     "should": "~13.2.3"
   },
-  "homepage": "https://github.com/adaltas/node-plugable#readme",
+  "homepage": "https://github.com/adaltas/node-plug-and-play#readme",
   "keywords": [
     "plugin",
     "extension",
@@ -62,7 +62,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/adaltas/node-plugable.git"
+    "url": "git+https://github.com/adaltas/node-plug-and-play.git"
   },
   "scripts": {
     "preversion": "grep '## Trunk' CHANGELOG.md && rm -rf lib && npm test",

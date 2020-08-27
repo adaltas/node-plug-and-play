@@ -1,5 +1,5 @@
 
-[![Build Status](https://secure.travis-ci.org/adaltas/node-plugable.svg)](http://travis-ci.org/adaltas/node-plugable)
+[![Build Status](https://secure.travis-ci.org/adaltas/node-plug-and-play.svg)](http://travis-ci.org/adaltas/node-plug-and-play)
 
 # Node.js Plugable package
 
@@ -17,39 +17,3 @@ Easily create hooks and let users plug their own logic across your code to make 
   Hook can be synchronous and asynchronous when returning a promise.
 * Nested/hierachical   
   Instanciate plugin instances with a parent reference and parent hooks will also be available inside the children.
-
-## Tutorial
-
-### 8. Nested/hierarchical architecture
-
-Plugin instances can be nested, which mean that an interception point can call registered hooks in the current instance as well as in its parents. Parents are defined on plugin initialization by passing the `parent` property:
-
-```js
-const plugable = require('plugable')
-// Initialize a parent and register a hook
-const parent = plugable()
-parent.register({
-  hooks: {
-    'app:test': () => {
-      console.log('call parent')
-    }
-  }
-})
-// Initialize a child referencing a parent and register a hook
-const child = plugable({
-  parent: parent
-})
-parent.register({
-  hooks: {
-    'app:test': () => {
-      console.log('call child')
-    }
-  }
-})
-// Call the hook
-child.hook({
-  event: 'my:hook'
-  args: {}
-  handler: function(){}
-})
-```

@@ -1,10 +1,10 @@
 
-plugable = require '../src'
+plugandplay = require '../src'
 
-describe 'plugable.hook', ->
+describe 'plugandplay.hook', ->
 
   it 'hook handler alter args with 1 argument', ->
-    plugins = plugable()
+    plugins = plugandplay()
     plugins.register hooks: 'my:hook': (test) ->
       test.a_key = 'a value'
     test = {}
@@ -15,7 +15,7 @@ describe 'plugable.hook', ->
     test.a_key.should.eql 'a value'
 
   it 'hook handler alter args', ->
-    plugins = plugable()
+    plugins = plugandplay()
     plugins.register hooks: 'my:hook': (test, handler) ->
       test.a_key = 'a value'
       handler
@@ -27,7 +27,7 @@ describe 'plugable.hook', ->
     test.a_key.should.eql 'a value'
 
   it 'hook handler alter args async', ->
-    plugins = plugable()
+    plugins = plugandplay()
     plugins.register hooks: 'my:hook': (ar, handler) ->
       ar.push 'alter 1'
       await new Promise (resolve) -> setImmediate resolve
@@ -44,7 +44,7 @@ describe 'plugable.hook', ->
     ar.should.eql ['alter 1', 'alter 2', 'origin']
 
   it 'call handler and alter result sync', ->
-    plugins = plugable()
+    plugins = plugandplay()
     plugins.register hooks: 'my:hook': (test, handler) ->
       ->
         res = handler.apply null, arguments
@@ -63,7 +63,7 @@ describe 'plugable.hook', ->
     .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
 
   it 'call handler and alter result async', ->
-    plugins = plugable()
+    plugins = plugandplay()
     plugins.register hooks: 'my:hook': (test, handler) ->
       ->
         res = await handler.apply null, arguments
