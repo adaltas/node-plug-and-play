@@ -61,13 +61,13 @@ mysuperlibrary.register({
   hooks: {
     'hooks:print': ({data}, handler) => {
       // Alter the argument
-      data.message = 'Hello world'
+      data.message = 'Hello World'
       // Print a message before the library code
-      console.log('>>>>>>>>')
+      console.log('>>>>>>>>>>>')
       // Call the original handler
       const result = handler.call(null, {data: data})
       // Print a message after the library code
-      console.log('<<<<<<<<')
+      console.log('<<<<<<<<<<<')
       return result
     }
   }
@@ -78,7 +78,7 @@ mysuperlibrary.print()
 While the original `print` function was only printing `Hello` to stdout, the introduction of this new plugin prints:
 
 ```
->>>>>>>>
+>>>>>>>>>>>
 Hello world
-<<<<<<<<
+<<<<<<<<<<<
 ```
