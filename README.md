@@ -20,7 +20,7 @@ Easily create hooks and let users plug their own logic across your code to make 
 
 ## Learning
 
-A detailed article is to be published soon.
+We encourage your to read the detailed tutorial on [how to create a plugin architected with Plug and Play](https://www.adaltas.com/en/2020/08/28/node-js-plugin-architecture/) published by [Adaltas](https://www.adaltas.com).
 
 ## Quick example
 
