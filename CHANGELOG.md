@@ -1,6 +1,10 @@
 
 # Changelog
 
+## Trunk
+
+* docs: update the readme example
+
 ## Version 2.0.1
 
 * project: tutorial link

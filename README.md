@@ -29,13 +29,15 @@ Library and application authors must define hooks, see [`./sample/lib.js`](https
 ```js
 const plugandplay = require('plug-and-play')
 
+const plugins = plugandplay()
+
 module.exports = {
   // Create and export a new Plug and Play instance
-  plugins: plugandplay(),
+  plugins: plugins,
   // Our core library function
   print: function() {
     // Wrap-up code
-    module.exports.plugins.call({
+    plugins.call({
       // Identify this hook with a name
       name: 'hooks:print',
       // Expose arguments to plugins authors
@@ -57,7 +59,7 @@ Users and pluging authors can now register their own hooks, see [`./sample/index
 ```js
 const mysuperlibrary = require('./lib')
 
-mysuperlibrary.register({
+mysuperlibrary.plugins.register({
   hooks: {
     'hooks:print': ({data}, handler) => {
       // Alter the argument
