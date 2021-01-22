@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Trunk
+## Version 2.0.2
 
 * docs: update the readme example
 
