@@ -83,5 +83,27 @@ describe 'plugandplay.hook', ->
       handler: (args) ->
         ['origin']
     .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
+
+  describe 'errors', ->
+
+    it 'expect 1 argument', ->
+      plugandplay()
+      .call {}, {}
+      .should.be.rejectedWith
+        code: 'PLUGINS_INVALID_ARGUMENTS_NUMBER'
+
+    it 'argument must a an object', ->
+      plugandplay()
+      .call []
+      .should.be.rejectedWith
+        code: 'PLUGINS_INVALID_ARGUMENT_PROPERTIES'
+
+    it 'object must contains `name` and be a stirng', ->
+      plugandplay()
+      .call
+        name: 123
+        handler: (->)
+      .should.be.rejectedWith
+        code: 'PLUGINS_INVALID_ARGUMENT_NAME'
       
         

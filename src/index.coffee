@@ -81,18 +81,18 @@ module.exports = ({args, chain, parent, plugins = []} = {}) ->
     call: ({args = [], handler, hooks = [], name})->
       if arguments.length isnt 1
         throw error 'PLUGINS_INVALID_ARGUMENTS_NUMBER', [
-          'function hook expect 1 object argument,'
+          'function `call` expect 1 object argument,'
           "got #{arguments.length} arguments."
         ]
       else unless is_object_literal arguments[0]
         throw error 'PLUGINS_INVALID_ARGUMENT_PROPERTIES', [
-          'function hook expect argument to be a literal object'
-          'with the name, args, hooks and handler properties,'
+          'function `call` expect argument to be a literal object'
+          'with the properties `name`, `args`, `hooks` and `handler`,'
           "got #{JSON.stringify arguments[0]} arguments."
         ]
       else unless typeof name is 'string'
         throw error 'PLUGINS_INVALID_ARGUMENT_NAME', [
-          'function hook expect a name properties in its first argument,'
+          'function `call` requires a property `name` in its first argument,'
           "got #{JSON.stringify arguments[0]} argument."
         ]
       # Retrieve the name hooks
