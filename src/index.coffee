@@ -23,17 +23,18 @@ normalize_hook = (name, hook) ->
     hook.before = [hook.before] if typeof hook.before is 'string'
     hook
 
-module.exports = ({action, chain, parent, plugins = []} = {}) ->
+module.exports = ({args, chain, parent, plugins = []} = {}) ->
   # Internal plugin store
   store = []
   # Public API definition
   obj =
     # Register new plugins
     register: (plugin) ->
+      plugin = plugin.apply null, args if typeof plugin is 'function'
       throw error('PLUGINS_REGISTER_INVALID_ARGUMENT', [
-        'a plugin must be an object literal'
+        'a plugin must be an object literal or a function return this object'
         'with keys such as `name`, `required` and `hooks`,'
-        "got #{if typeof plugin is 'function' then 'a function' else JSON.stringify plugin} instead."
+        "got #{JSON.stringify plugin} instead."
       ]) unless is_object_literal plugin
       plugin.hooks ?= {}
       for name, hook of plugin.hooks
@@ -106,7 +107,7 @@ module.exports = ({action, chain, parent, plugins = []} = {}) ->
       handler.call @, args if handler
   # Register initial plugins
   for plugin in plugins
-    obj.register plugin action
+    obj.register plugin
   # return the object
   obj
 

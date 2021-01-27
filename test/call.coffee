@@ -6,6 +6,7 @@ describe 'plugandplay.hook', ->
   it 'hook handler alter args with 1 argument', ->
     plugins = plugandplay()
     plugins.register hooks: 'my:hook': (test) ->
+      # Alter `test` with `a_key`
       test.a_key = 'a value'
     test = {}
     await plugins.call

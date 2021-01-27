@@ -3,16 +3,34 @@ plugandplay = require '../src'
 
 describe 'plugandplay.register', ->
   
+  it 'register an object', ->
+    plugins = plugandplay()
+    plugins.register
+      hooks:
+        'my:hook': -> 1
+    # Test the registered hooks
+    .get name: 'my:hook'
+    .map((hook) -> hook.handler.call()).should.eql [1]
+  
+  it 'register a function', ->
+    plugins = plugandplay()
+    plugins.register ->
+      hooks:
+        'my:hook': -> 1
+    # Test the registered hooks
+    .get name: 'my:hook'
+    .map((hook) -> hook.handler.call()).should.eql [1]
+  
   describe 'errors', ->
 
-    it 'when plugin not an object but a function', ->
+    it 'when plugin not an nor a function', ->
       (->
-        plugandplay().register (->)
+        plugandplay().register 'abc'
       ).should.throw [
         'PLUGINS_REGISTER_INVALID_ARGUMENT:'
-        'a plugin must be an object literal'
+        'a plugin must be an object literal or a function return this object'
         'with keys such as `name`, `required` and `hooks`,'
-        'got a function instead.'
+        'got "abc" instead.'
       ].join ' '
 
     it 'when hooks is neither a function nor a object literal', ->
