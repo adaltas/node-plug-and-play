@@ -100,8 +100,12 @@ module.exports = ({args, chain, parent, plugins = []} = {}) ->
       # Call the hooks
       for hook in hooks
         switch hook.handler.length
-          when 1 then await hook.handler.call @, args
+          when 0, 1 then await hook.handler.call @, args
           when 2 then handler = await hook.handler.call @, args, handler
+          else throw error 'PLUGINS_INVALID_HOOK_HANDLER', [
+            'hook handlers must have 0 to 2 arguments'
+            "got #{hook.handler.length}"
+          ]
       # Call the final handler
       handler.call @, args if handler
   # Register initial plugins
