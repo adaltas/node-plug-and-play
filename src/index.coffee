@@ -78,7 +78,7 @@ module.exports = ({args, chain, parent, plugins = []} = {}) ->
       edges = array_flatten edges, 0
       toposort.array hooks, edges
     # Call a hook against each registered plugin matching the hook name
-    call: ({args = [], handler, hooks = [], name, silent})->
+    call: ({args = [], handler, hooks = [], name})->
       if arguments.length isnt 1
         throw error 'PLUGINS_INVALID_ARGUMENTS_NUMBER', [
           'function hook expect 1 object argument,'
@@ -103,7 +103,6 @@ module.exports = ({args, chain, parent, plugins = []} = {}) ->
           when 1 then await hook.handler.call @, args
           when 2 then handler = await hook.handler.call @, args, handler
       # Call the final handler
-      return handler if silent
       handler.call @, args if handler
   # Register initial plugins
   for plugin in plugins
