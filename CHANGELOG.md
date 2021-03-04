@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/adaltas/node-plug-and-play/compare/v2.1.0...v2.2.0) (2021-03-04)
+
+
+### Features
+
+* new call_sync function ([bbc2b19](https://github.com/adaltas/node-plug-and-play/commit/bbc2b1933e57eac9737b643abfc0356ed310d7d8))
+
 ## [2.1.0](https://github.com/adaltas/node-plug-and-play/compare/v2.0.2...v2.1.0) (2021-01-27)
 
 
