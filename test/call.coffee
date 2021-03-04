@@ -16,7 +16,6 @@ describe 'plugandplay.hook', ->
       count.should.eql 1
     
     it 'more than 2 arguments', ->
-      count = 0
       plugins = plugandplay()
       plugins.register hooks: 'my:hook': ( (a, b, c) -> )
       plugins.call
@@ -72,6 +71,81 @@ describe 'plugandplay.hook', ->
         args: ar
         handler: (ar) -> ar.push 'origin'
       ar.should.eql ['alter 1', 'alter 2', 'origin']
+
+    it 'async handler unordered timeout', ->
+      plugins = plugandplay()
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        new Promise (resolve) -> setTimeout ->
+         ar.push 'hook 1'
+         resolve handler
+        , 300
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        new Promise (resolve) -> setTimeout ->
+         ar.push 'hook 2'
+         resolve handler
+        , 100
+      ar = []
+      await plugins.call
+        name: 'my:hook'
+        args: ar
+        handler: (ar) ->
+          new Promise (resolve) -> setTimeout ->
+           ar.push 'origin'
+           resolve()
+          , 100
+      ar.should.eql ['hook 1', 'hook 2', 'origin']
+  
+  describe 'stop', ->
+
+    it 'with sync handlers', ->
+      plugins = plugandplay()
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 1'
+        handler
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 2'
+        null
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 3'
+        handler
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 4'
+        handler
+      ar = []
+      await plugins.call
+        name: 'my:hook'
+        args: ar
+        handler: (ar) ->
+          ar.push 'origin'
+      ar.should.eql ['hook 1', 'hook 2']
+
+    it 'with async handlers', ->
+      plugins = plugandplay()
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        new Promise (resolve) -> setTimeout ->
+          ar.push 'hook 1'
+          resolve handler
+        , 300
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        new Promise (resolve) -> setTimeout ->
+          ar.push 'hook 2'
+          resolve null
+        , 100
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        new Promise (resolve) -> setTimeout ->
+          ar.push 'hook 3'
+          resolve handler
+        , 300
+      ar = []
+      await plugins.call
+        name: 'my:hook'
+        args: ar
+        handler: (ar) ->
+          new Promise (resolve) -> setTimeout ->
+           ar.push 'origin'
+           resolve()
+          , 100
+      ar.should.eql ['hook 1', 'hook 2']
   
   describe 'alter result', ->
 
@@ -129,7 +203,7 @@ describe 'plugandplay.hook', ->
       .should.be.rejectedWith
         code: 'PLUGINS_INVALID_ARGUMENT_PROPERTIES'
 
-    it 'object must contains `name` and be a stirng', ->
+    it 'object must contains `name` and be a string', ->
       plugandplay()
       .call
         name: 123

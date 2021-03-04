@@ -78,7 +78,7 @@ module.exports = ({args, chain, parent, plugins = []} = {}) ->
       edges = array_flatten edges, 0
       toposort.array hooks, edges
     # Call a hook against each registered plugin matching the hook name
-    call: ({args = [], handler, hooks = [], name})->
+    call: ({args = [], handler, hooks = [], name}) ->
       if arguments.length isnt 1
         throw error 'PLUGINS_INVALID_ARGUMENTS_NUMBER', [
           'function `call` expect 1 object argument,'
@@ -104,6 +104,40 @@ module.exports = ({args, chain, parent, plugins = []} = {}) ->
             await hook.handler.call @, args
           when 2
             handler = await hook.handler.call @, args, handler
+            return null if handler is null
+          else throw error 'PLUGINS_INVALID_HOOK_HANDLER', [
+            'hook handlers must have 0 to 2 arguments'
+            "got #{hook.handler.length}"
+          ]
+      # Call the final handler
+      handler.call @, args if handler
+    # Call a hook against each registered plugin matching the hook name
+    call_sync: ({args = [], handler, hooks = [], name}) ->
+      if arguments.length isnt 1
+        throw error 'PLUGINS_INVALID_ARGUMENTS_NUMBER', [
+          'function `call` expect 1 object argument,'
+          "got #{arguments.length} arguments."
+        ]
+      else unless is_object_literal arguments[0]
+        throw error 'PLUGINS_INVALID_ARGUMENT_PROPERTIES', [
+          'function `call` expect argument to be a literal object'
+          'with the properties `name`, `args`, `hooks` and `handler`,'
+          "got #{JSON.stringify arguments[0]} arguments."
+        ]
+      else unless typeof name is 'string'
+        throw error 'PLUGINS_INVALID_ARGUMENT_NAME', [
+          'function `call` requires a property `name` in its first argument,'
+          "got #{JSON.stringify arguments[0]} argument."
+        ]
+      # Retrieve the name hooks
+      hooks = this.get hooks: hooks, name: name
+      # Call the hooks
+      for hook in hooks
+        switch hook.handler.length
+          when 0, 1
+            hook.handler.call @, args
+          when 2
+            handler = hook.handler.call @, args, handler
             return null if handler is null
           else throw error 'PLUGINS_INVALID_HOOK_HANDLER', [
             'hook handlers must have 0 to 2 arguments'
