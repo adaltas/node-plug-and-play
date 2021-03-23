@@ -106,6 +106,8 @@ It accepts an option object with the properties:
 * `plugins` ([plugin])   
   List of plugins to register
 
+### Plugin object
+
 A plugin is an object literal with the properties:
 
 * `hooks` ({name: hook})   
@@ -114,6 +116,8 @@ A plugin is an object literal with the properties:
   Name of the plugin.
 
 Alternatively, a plugin can be defined as a function which return the same plugin object and receive the `args` property from the Plug-And-Play function.
+
+### Hook object
 
 A hook is an object literal with the properties:
 
@@ -125,3 +129,56 @@ A hook is an object literal with the properties:
   List of plugin names with hook of the same name are to be executed after, a string is coerced to an array.
   
 Note, when referencing plugins with `after` and `before`, the plugins do not need to exists. If they do, they are required to export a hook of the same name.
+
+### Call function
+
+The function signature is:
+
+```
+call({args = [], handler, hooks = [], name})
+```
+
+Execute a hander function and its associated hooks. The first argument is an object with the properties:
+
+* `args` (any)
+  The argument pass to the handler function as well as all hook handlers
+* `handler` (function)   
+  The function to decorate, receive the value assocaited with the `args` property.
+* `name` (string)   
+  The plugin hook to refer to.
+* `hooks` ([hook])   
+  List of completary hooks from the end user.
+
+### Get function
+
+The function signature is:
+
+```
+get({name, hooks, sort})
+```
+
+The `get` function return hooks. It expects a property `option` which is a literal object with the properties:
+
+* `name` (string)   
+  Name of the hook.
+* `hooks` ([hook])
+  List of completary hooks from the end user.
+* `sort` (boolean)   
+  Sort the hooks relatively to each other using the `after` and `before` properties.
+
+### Register function
+
+The function signature is:
+
+```
+register(plugin)
+```
+
+Plugin can be provided when instantiating Plug-And-Play by passing the `plugins` property or they can be provided later on by calling the `register` function. The function only accept one argument, the `plugin` property:
+
+* `plugin` (plugin)   
+  A plugin object.
+
+## Roadmap
+
+Worth considering: move the `name` property of `get` and `call` into the first argument and move the other properties into a second argument named option.
