@@ -3,7 +3,27 @@ plugandplay = require '../src'
 
 describe 'plugandplay.hook', ->
   
-  describe 'handler arguments', ->
+  describe 'api', ->
+
+    it 'expect 1 argument', ->
+      (->
+        plugandplay()
+        .call_sync {}, {}
+      ).should.throw code: 'PLUGINS_INVALID_ARGUMENTS_NUMBER'
+
+    it 'argument must a an object', ->
+      (->
+        plugandplay()
+        .call_sync []
+      ).should.throw code: 'PLUGINS_INVALID_ARGUMENT_PROPERTIES'
+
+    it 'object must contains `name` and be a string', ->
+      (->
+        plugandplay()
+        .call_sync
+          name: 123
+          handler: (->)
+      ).should.throw code: 'PLUGINS_INVALID_ARGUMENT_NAME'
     
     it 'no aguments', ->
       count = 0
@@ -56,9 +76,9 @@ describe 'plugandplay.hook', ->
         handler: (->)
       test.a_key.should.eql 'a value'
 
-  describe 'stop', ->
+  describe 'stop with null', ->
 
-    it 'with sync handlers', ->
+    it 'when `null` is returned, sync mode', ->
       plugins = plugandplay()
       plugins.register hooks: 'my:hook': (ar, handler) ->
         ar.push 'hook 1'
@@ -100,28 +120,6 @@ describe 'plugandplay.hook', ->
         handler: (args) ->
           ['origin']
       .should.eql ['origin', 'alter_1', 'alter_2']
-
-  describe 'errors', ->
-
-    it 'expect 1 argument', ->
-      (->
-        plugandplay()
-        .call_sync {}, {}
-      ).should.throw code: 'PLUGINS_INVALID_ARGUMENTS_NUMBER'
-
-    it 'argument must a an object', ->
-      (->
-        plugandplay()
-        .call_sync []
-      ).should.throw code: 'PLUGINS_INVALID_ARGUMENT_PROPERTIES'
-
-    it 'object must contains `name` and be a string', ->
-      (->
-        plugandplay()
-        .call_sync
-          name: 123
-          handler: (->)
-      ).should.throw code: 'PLUGINS_INVALID_ARGUMENT_NAME'
         
       
         
