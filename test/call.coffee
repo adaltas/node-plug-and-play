@@ -49,6 +49,30 @@ describe 'plugandplay.hook', ->
           "got 3"
         ].join ' '
   
+  describe 'property `args`', ->
+    
+    it 'is passed to handlers', ->
+      stack = []
+      plugins = plugandplay
+        plugins: [
+          hooks: 'my:hook': (args) ->
+            stack.push args
+        ,
+          hooks: 'my:hook': (args, handler) ->
+            stack.push args
+            handler
+        ]
+      await plugins.call
+        name: 'my:hook'
+        args: a_key: 'a_value'
+        handler: (args) ->
+          stack.push args
+      stack.should.eql [
+        { a_key: 'a_value' }
+        { a_key: 'a_value' }
+        { a_key: 'a_value' }
+      ]
+  
   describe 'handler alter args', ->
 
     it 'synch handler without handler argument', ->
@@ -114,6 +138,48 @@ describe 'plugandplay.hook', ->
            resolve()
           , 100
       ar.should.eql ['hook 1', 'hook 2', 'origin']
+  
+  describe 'alter result', ->
+
+    it 'sync', ->
+      plugins = plugandplay()
+      plugins.register hooks: 'my:hook': (test, handler) ->
+        ->
+          res = handler.apply null, arguments
+          res.push 'alter_1'
+          res
+      plugins.register hooks: 'my:hook': (test, handler) ->
+        ->
+          res = handler.apply null, arguments
+          res.push 'alter_2'
+          res
+      plugins.call
+        name: 'my:hook'
+        args: {}
+        handler: (args) ->
+          ['origin']
+      .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
+
+    it 'async', ->
+      plugins = plugandplay()
+      plugins.register hooks: 'my:hook': (test, handler) ->
+        ->
+          res = await handler.apply null, arguments
+          res.push 'alter_1'
+          await new Promise (resolve) -> setImmediate resolve
+          res
+      plugins.register hooks: 'my:hook': (test, handler) ->
+        ->
+          res = await handler.apply null, arguments
+          res.push 'alter_2'
+          await new Promise (resolve) -> setImmediate resolve
+          res
+      plugins.call
+        name: 'my:hook'
+        args: {}
+        handler: (args) ->
+          ['origin']
+      .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
   
   describe 'continue with `undefined`', ->
 
@@ -191,47 +257,5 @@ describe 'plugandplay.hook', ->
            resolve()
           , 100
       ar.should.eql ['hook 1', 'hook 2']
-  
-  describe 'alter result', ->
-
-    it 'sync', ->
-      plugins = plugandplay()
-      plugins.register hooks: 'my:hook': (test, handler) ->
-        ->
-          res = handler.apply null, arguments
-          res.push 'alter_1'
-          res
-      plugins.register hooks: 'my:hook': (test, handler) ->
-        ->
-          res = handler.apply null, arguments
-          res.push 'alter_2'
-          res
-      plugins.call
-        name: 'my:hook'
-        args: {}
-        handler: (args) ->
-          ['origin']
-      .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
-
-    it 'async', ->
-      plugins = plugandplay()
-      plugins.register hooks: 'my:hook': (test, handler) ->
-        ->
-          res = await handler.apply null, arguments
-          res.push 'alter_1'
-          await new Promise (resolve) -> setImmediate resolve
-          res
-      plugins.register hooks: 'my:hook': (test, handler) ->
-        ->
-          res = await handler.apply null, arguments
-          res.push 'alter_2'
-          await new Promise (resolve) -> setImmediate resolve
-          res
-      plugins.call
-        name: 'my:hook'
-        args: {}
-        handler: (args) ->
-          ['origin']
-      .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
       
         
