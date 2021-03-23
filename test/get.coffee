@@ -2,29 +2,32 @@
 plugandplay = require '../src'
 
 describe 'plugandplay.get', ->
+  
+  describe 'option `name`', ->
+    
+    it 'root level', ->
+      plugins = plugandplay()
+      plugins.register hooks: 'my:hook': -> 1
+      plugins.register hooks: 'my:hook': -> 2
+      plugins.register hooks: 'another:hook': -> 2
+      plugins.get name: 'my:hook'
+      .map((hook) -> hook.handler.call()).should.eql [1, 2]
 
-  it 'root level', ->
-    plugins = plugandplay()
-    plugins.register hooks: 'my:hook': -> 1
-    plugins.register hooks: 'my:hook': -> 2
-    plugins.get name: 'my:hook'
-    .map((hook) -> hook.handler.call()).should.eql [1, 2]
-
-  it 'after and before as function', ->
-    plugins = plugandplay()
-    plugins.register name: 'module/after', hooks: 'my:hook': (->)
-    plugins.register name: 'module/before', hooks: 'my:hook': (->)
-    plugins.register
-      name: 'module/origin'
-      hooks: 'my:hook':
-        after: 'module/after'
-        before: 'module/before'
-        handler: (->)
-    plugins.get name: 'my:hook'
-    .map (hook) -> hook.plugin
-    .should.eql [
-      'module/after', 'module/origin', 'module/before'
-    ]
+    it 'after and before as function', ->
+      plugins = plugandplay()
+      plugins.register name: 'module/after', hooks: 'my:hook': (->)
+      plugins.register name: 'module/before', hooks: 'my:hook': (->)
+      plugins.register
+        name: 'module/origin'
+        hooks: 'my:hook':
+          after: 'module/after'
+          before: 'module/before'
+          handler: (->)
+      plugins.get name: 'my:hook'
+      .map (hook) -> hook.plugin
+      .should.eql [
+        'module/after', 'module/origin', 'module/before'
+      ]
   
   describe 'errors', ->
 

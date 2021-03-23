@@ -203,8 +203,12 @@ describe 'plugandplay.hook', ->
         args: ar
         handler: (ar) ->
           ar.push 'origin'
-      # ar.should.eql ['hook 1', 'hook 2']
-      console.log ar
+      ar.should.eql [
+        'hook 1', 'function'
+        'hook 2', 'function'
+        'hook 3', 'undefined'
+        'hook 4', 'undefined'
+      ]
 
   describe 'stop with `null`', ->
 
