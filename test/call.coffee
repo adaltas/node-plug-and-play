@@ -115,7 +115,32 @@ describe 'plugandplay.hook', ->
           , 100
       ar.should.eql ['hook 1', 'hook 2', 'origin']
   
-  describe 'stop with null', ->
+  describe 'continue with `undefined`', ->
+
+    it 'when `undefined` is returned, sync mode', ->
+      plugins = plugandplay()
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 1', typeof handler
+        handler
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 2', typeof handler
+        undefined
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 3', typeof handler
+        handler
+      plugins.register hooks: 'my:hook': (ar, handler) ->
+        ar.push 'hook 4', typeof handler
+        handler
+      ar = []
+      await plugins.call
+        name: 'my:hook'
+        args: ar
+        handler: (ar) ->
+          ar.push 'origin'
+      # ar.should.eql ['hook 1', 'hook 2']
+      console.log ar
+
+  describe 'stop with `null`', ->
 
     it 'when `null` is returned, sync mode', ->
       plugins = plugandplay()
