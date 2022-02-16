@@ -8,6 +8,10 @@
     "plugin:mocha/recommended"
   ],
   "parser": "eslint-plugin-coffee",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
   "plugins": ["coffee", "mocha"],
   "rules": {
     "coffee/comma-style": "off",

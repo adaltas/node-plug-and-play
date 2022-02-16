@@ -32,6 +32,8 @@
   "devDependencies": {
     "@commitlint/cli": "^16.2.1",
     "@commitlint/config-conventional": "^16.2.1",
+    "@rollup/plugin-eslint": "^8.0.1",
+    "@rollup/plugin-node-resolve": "^13.1.3",
     "coffeescript": "^2.6.1",
     "eslint": "^8.9.0",
     "eslint-plugin-coffee": "^0.1.15",
@@ -39,6 +41,7 @@
     "husky": "^7.0.4",
     "mocha": "9.2.0",
     "pinst": "^2.1.6",
+    "rollup": "^2.67.2",
     "should": "~13.2.3",
     "standard-version": "^9.3.2"
   },
@@ -62,21 +65,22 @@
   "license": "MIT",
   "main": "lib/index.js",
   "mocha": {
-    "throw-deprecation": true,
-    "require": [
-      "should",
-      "coffeescript/register"
-    ],
     "inline-diffs": true,
-    "timeout": 40000,
+    "loader": "./test/loaders/coffee.js",
+    "recursive": true,
     "reporter": "spec",
-    "recursive": true
+    "require": [
+      "should"
+    ],
+    "throw-deprecation": true,
+    "timeout": 40000
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/adaltas/node-plug-and-play.git"
   },
   "scripts": {
+    "build": "npx rollup -c",
     "postinstall": "husky install",
     "prepublishOnly": "pinst --disable",
     "postpublish": "pinst --enable",
@@ -87,5 +91,6 @@
     "release:minor": "standard-version --release-as minor",
     "release:patch": "standard-version --release-as patch",
     "release:major": "standard-version --release-as major"
-  }
+  },
+  "type": "module"
 }

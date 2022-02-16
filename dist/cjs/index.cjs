@@ -1,8 +1,64 @@
+'use strict';
 
-import {is_object_literal, is_object, merge} from 'mixme';
-import toposort from 'toposort';
-import error from './error.js';
-import {array_flatten} from './utils.js';
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var mixme = require('mixme');
+var toposort = require('toposort');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var toposort__default = /*#__PURE__*/_interopDefaultLegacy(toposort);
+
+const PlugableError = class PlugableError extends Error {
+  constructor(code, message, ...contexts) {
+    var context, i, key, len, value;
+    if (Array.isArray(message)) {
+      message = message.filter(function (line) {
+        return !!line;
+      }).join(' ');
+    }
+    message = `${code}: ${message}`;
+    super(message);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, PlugableError);
+    }
+    this.code = code;
+    for (i = 0, len = contexts.length; i < len; i++) {
+      context = contexts[i];
+      for (key in context) {
+        if (key === 'code') {
+          continue;
+        }
+        value = context[key];
+        if (value === void 0) {
+          continue;
+        }
+        this[key] = Buffer.isBuffer(value) ? value.toString() : value === null ? value : JSON.parse(JSON.stringify(value));
+      }
+    }
+  }
+};
+var error = (function () {
+  return new PlugableError(...arguments);
+});
+
+const array_flatten = function (items, depth = -1) {
+  const result = [];
+  for (const item of items) {
+    if (Array.isArray(item)) {
+      if (depth === 0) {
+        result.push(...item);
+      }
+      else {
+        result.push(...array_flatten(item, depth - 1));
+      }
+    }
+    else {
+      result.push(item);
+    }
+  }
+  return result;
+};
 
 const normalize_hook = function(name, hook) {
   if (!Array.isArray(hook)) {
@@ -13,7 +69,7 @@ const normalize_hook = function(name, hook) {
       hook = {
         handler: hook
       };
-    } else if (!is_object(hook)) {
+    } else if (!mixme.is_object(hook)) {
       throw error('PLUGINS_HOOK_INVALID_HANDLER', ['no hook handler function could be found,', 'a hook must be defined as a function', 'or as an object with an handler property,', `got ${JSON.stringify(hook)} instead.`]);
     }
     hook.name = name;
@@ -46,7 +102,7 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
       if (typeof plugin === 'function') {
         plugin = plugin.apply(null, args);
       }
-      if (!is_object_literal(plugin)) {
+      if (!mixme.is_object_literal(plugin)) {
         throw error('PLUGINS_REGISTER_INVALID_ARGUMENT', ['a plugin must be an object literal or a function return this object', 'with keys such as `name`, `required` and `hooks`,', `got ${JSON.stringify(plugin)} instead.`]);
       }
       if (plugin.hooks == null) {
@@ -65,7 +121,7 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
           store.map(function(plugin){
             if(!plugin.hooks[name]) return;
             return plugin.hooks[name].map(function(hook){
-              return merge({
+              return mixme.merge({
                 plugin: plugin.name
               }, hook);
             });
@@ -115,13 +171,13 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
           });
         }).filter(function(hook){return hook !== undefined;});
       const edges = array_flatten([...edges_after, ...edges_before], 0);
-      return toposort.array(hooks, edges);
+      return toposort__default["default"].array(hooks, edges);
     },
     // Call a hook against each registered plugin matching the hook name
     call: async function({args = [], handler, hooks = [], name}) {
       if (arguments.length !== 1) {
         throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', ['function `call` expect 1 object argument,', `got ${arguments.length} arguments.`]);
-      } else if (!is_object_literal(arguments[0])) {
+      } else if (!mixme.is_object_literal(arguments[0])) {
         throw error('PLUGINS_INVALID_ARGUMENT_PROPERTIES', ['function `call` expect argument to be a literal object', 'with the properties `name`, `args`, `hooks` and `handler`,', `got ${JSON.stringify(arguments[0])} arguments.`]);
       } else if (typeof name !== 'string') {
         throw error('PLUGINS_INVALID_ARGUMENT_NAME', ['function `call` requires a property `name` in its first argument,', `got ${JSON.stringify(arguments[0])} argument.`]);
@@ -157,7 +213,7 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
     call_sync: function({args = [], handler, hooks = [], name}) {
       if (arguments.length !== 1) {
         throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', ['function `call` expect 1 object argument,', `got ${arguments.length} arguments.`]);
-      } else if (!is_object_literal(arguments[0])) {
+      } else if (!mixme.is_object_literal(arguments[0])) {
         throw error('PLUGINS_INVALID_ARGUMENT_PROPERTIES', ['function `call` expect argument to be a literal object', 'with the properties `name`, `args`, `hooks` and `handler`,', `got ${JSON.stringify(arguments[0])} arguments.`]);
       } else if (typeof name !== 'string') {
         throw error('PLUGINS_INVALID_ARGUMENT_NAME', ['function `call` requires a property `name` in its first argument,', `got ${JSON.stringify(arguments[0])} argument.`]);
@@ -198,4 +254,4 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
   return registry;
 };
 
-export {plugandplay};
+exports.plugandplay = plugandplay;

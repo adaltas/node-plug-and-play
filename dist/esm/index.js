@@ -1,8 +1,56 @@
-
-import {is_object_literal, is_object, merge} from 'mixme';
+import { is_object_literal, is_object, merge } from 'mixme';
 import toposort from 'toposort';
-import error from './error.js';
-import {array_flatten} from './utils.js';
+
+const PlugableError = class PlugableError extends Error {
+  constructor(code, message, ...contexts) {
+    var context, i, key, len, value;
+    if (Array.isArray(message)) {
+      message = message.filter(function (line) {
+        return !!line;
+      }).join(' ');
+    }
+    message = `${code}: ${message}`;
+    super(message);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, PlugableError);
+    }
+    this.code = code;
+    for (i = 0, len = contexts.length; i < len; i++) {
+      context = contexts[i];
+      for (key in context) {
+        if (key === 'code') {
+          continue;
+        }
+        value = context[key];
+        if (value === void 0) {
+          continue;
+        }
+        this[key] = Buffer.isBuffer(value) ? value.toString() : value === null ? value : JSON.parse(JSON.stringify(value));
+      }
+    }
+  }
+};
+var error = (function () {
+  return new PlugableError(...arguments);
+});
+
+const array_flatten = function (items, depth = -1) {
+  const result = [];
+  for (const item of items) {
+    if (Array.isArray(item)) {
+      if (depth === 0) {
+        result.push(...item);
+      }
+      else {
+        result.push(...array_flatten(item, depth - 1));
+      }
+    }
+    else {
+      result.push(item);
+    }
+  }
+  return result;
+};
 
 const normalize_hook = function(name, hook) {
   if (!Array.isArray(hook)) {
@@ -198,4 +246,4 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
   return registry;
 };
 
-export {plugandplay};
+export { plugandplay };

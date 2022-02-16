@@ -1,5 +1,5 @@
 
-plugandplay = require '../lib'
+import plugandplay from '../lib/index.js'
 
 describe 'plugandplay.register', ->
   
