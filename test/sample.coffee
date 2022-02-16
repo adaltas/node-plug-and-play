@@ -1,6 +1,4 @@
 
-plugandplay = require '../lib'
-
 describe 'plugandplay.sample', ->
 
   it 'validate', ->

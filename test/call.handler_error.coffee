@@ -23,8 +23,8 @@ describe 'plugandplay.call.handler_error', ->
       plugins: [
         name: 'my:plugin'
         hooks: 'my:hook':
-          handler: (args) ->
-            catchme()
+          handler: ->
+            catchme() # eslint-disable-line
       ]
     plugins.call
       name: 'my:hook'
@@ -37,7 +37,7 @@ describe 'plugandplay.call.handler_error', ->
       plugins: [
         name: 'my:plugin'
         hooks: 'my:hook':
-          handler: (args, handler) ->
+          handler: (args) ->
             throw Error args
       ]
     plugins.call
@@ -52,7 +52,7 @@ describe 'plugandplay.call.handler_error', ->
       plugins: [
         name: 'my:plugin'
         hooks: 'my:hook':
-          handler: (args, handler) ->
+          handler: (args, handler) -> # eslint-disable-line
             ->
               throw Error args
       ]
@@ -88,7 +88,7 @@ describe 'plugandplay.call.handler_error', ->
           handler: (args, handler) ->
             ->
               await handler.apply null, []
-              catchme()
+              catchme() # eslint-disable-line
       ]
     plugins.call
       name: 'my:hook'

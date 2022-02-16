@@ -1,7 +1,7 @@
 
 plugandplay = require '../lib'
 
-describe 'plugandplay.hook', ->
+describe 'plugandplay.call_sync', ->
   
   describe 'api', ->
 
@@ -38,7 +38,7 @@ describe 'plugandplay.hook', ->
     it 'more than 2 arguments', ->
       (->
         plugins = plugandplay()
-        plugins.register hooks: 'my:hook': ( (a, b, c) -> )
+        plugins.register hooks: 'my:hook': ( (a, b, c) -> [a, b, c] )
         plugins.call_sync
           name: 'my:hook'
           handler: (->)
@@ -83,7 +83,7 @@ describe 'plugandplay.hook', ->
       plugins.register hooks: 'my:hook': (ar, handler) ->
         ar.push 'hook 1'
         handler
-      plugins.register hooks: 'my:hook': (ar, handler) ->
+      plugins.register hooks: 'my:hook': (ar, handler) -> # eslint-disable-line
         ar.push 'hook 2'
         null
       plugins.register hooks: 'my:hook': (ar, handler) ->
@@ -116,9 +116,8 @@ describe 'plugandplay.hook', ->
           res
       plugins.call_sync
         name: 'my:hook'
-        args: {}
-        handler: (args) ->
-          ['origin']
+        args: ['origin']
+        handler: (args) -> args
       .should.eql ['origin', 'alter_1', 'alter_2']
         
       

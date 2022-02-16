@@ -1,7 +1,7 @@
 
 plugandplay = require '../lib'
 
-describe 'plugandplay.hook', ->
+describe 'plugandplay.call', ->
   
   describe 'api', ->
 
@@ -37,7 +37,7 @@ describe 'plugandplay.hook', ->
     
     it 'more than 2 arguments', ->
       plugins = plugandplay()
-      plugins.register hooks: 'my:hook': ( (a, b, c) -> )
+      plugins.register hooks: 'my:hook': ( (a, b, c) -> [a, b, c] )
       plugins.call
         name: 'my:hook'
         handler: (->)
@@ -155,9 +155,8 @@ describe 'plugandplay.hook', ->
           res
       plugins.call
         name: 'my:hook'
-        args: {}
-        handler: (args) ->
-          ['origin']
+        args: ['origin']
+        handler: (args) -> args
       .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
 
     it 'async', ->
@@ -176,9 +175,8 @@ describe 'plugandplay.hook', ->
           res
       plugins.call
         name: 'my:hook'
-        args: {}
-        handler: (args) ->
-          ['origin']
+        args: ['origin']
+        handler: (args) -> args
       .should.be.resolvedWith ['origin', 'alter_1', 'alter_2']
   
   describe 'continue with `undefined`', ->
@@ -217,7 +215,7 @@ describe 'plugandplay.hook', ->
       plugins.register hooks: 'my:hook': (ar, handler) ->
         ar.push 'hook 1'
         handler
-      plugins.register hooks: 'my:hook': (ar, handler) ->
+      plugins.register hooks: 'my:hook': (ar, handler) -> # eslint-disable-line
         ar.push 'hook 2'
         null
       plugins.register hooks: 'my:hook': (ar, handler) ->
@@ -241,7 +239,7 @@ describe 'plugandplay.hook', ->
           ar.push 'hook 1'
           resolve handler
         , 300
-      plugins.register hooks: 'my:hook': (ar, handler) ->
+      plugins.register hooks: 'my:hook': (ar, handler) -> # eslint-disable-line
         new Promise (resolve) -> setTimeout ->
           ar.push 'hook 2'
           resolve null
