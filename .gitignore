@@ -5,6 +5,7 @@
 /yarn-error.log
 !.eslintrc.json
 !.eslintrc.test.json
+!.husky
 !.travis.yml
 !.gitignore
 !.gitattributes

@@ -13,6 +13,7 @@
     "coffee/comma-style": "off",
     "coffee/id-length": "off",
     "coffee/implicit-arrow-linebreak": "off",
-    "coffee/jsx-wrap-multilines": "off"
+    "coffee/jsx-wrap-multilines": "off",
+    "indent": ["error", 2]
   }
 }
