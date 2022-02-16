@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/adaltas/node-plug-and-play/compare/v2.3.0...v2.4.0) (2022-02-16)
+
+
+### Features
+
+* esm support ([f74caa6](https://github.com/adaltas/node-plug-and-play/commit/f74caa66390df024eb2d3277ae278db16f81c2c8))
+
 ## [2.3.0](https://github.com/adaltas/node-plug-and-play/compare/v2.2.0...v2.3.0) (2021-03-23)
 
 ## [2.2.0](https://github.com/adaltas/node-plug-and-play/compare/v2.1.0...v2.2.0) (2021-03-04)
