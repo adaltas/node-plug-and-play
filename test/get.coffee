@@ -1,5 +1,5 @@
 
-plugandplay = require '../src'
+plugandplay = require '../lib'
 
 describe 'plugandplay.get', ->
   
