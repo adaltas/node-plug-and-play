@@ -4,8 +4,10 @@
     "node": true
   },
   "extends": [
+    "plugin:coffee/disable-incompatible",
     "plugin:coffee/eslint-recommended",
-    "plugin:mocha/recommended"
+    "plugin:mocha/recommended",
+    "plugin:coffee/prettier"
   ],
   "parser": "eslint-plugin-coffee",
   "parserOptions": {
