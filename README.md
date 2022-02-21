@@ -24,7 +24,7 @@ We encourage your to read the detailed tutorial on [how to create a plugin archi
 
 ## Quick example
 
-Library and application authors must define hooks, see [`./sample/lib.js`](https://github.com/adaltas/node-plug-and-play/blob/master/sample/lib.js):
+Library and application authors define hooks, see [`./sample/lib.js`](https://github.com/adaltas/node-plug-and-play/blob/master/sample/lib.js):
 
 ```js
 const plugandplay = require('plug-and-play')
@@ -87,7 +87,7 @@ Hello world
 
 ## API
 
-The package export a function to create a new instance:
+The package exports a function to create a new instance:
 
 ```
 const plugandplay = require('plug-and-play')
@@ -127,7 +127,7 @@ A hook is an object literal with the properties:
   The name of the hook.
 * `before` ([string])   
   List of plugin names with hook of the same name are to be executed after, a string is coerced to an array.
-  
+
 Note, when referencing plugins with `after` and `before`, the plugins do not need to exists. If they do, they are required to export a hook of the same name.
 
 ### Call function
