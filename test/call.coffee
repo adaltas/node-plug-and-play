@@ -1,5 +1,5 @@
 
-import plugandplay from '../lib/index.js'
+import {plugandplay} from '../lib/index.js'
 
 describe 'plugandplay.call', ->
   
