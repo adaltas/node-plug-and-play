@@ -28,7 +28,7 @@ describe 'plugandplay.register', ->
         plugandplay().register 'abc'
       ).should.throw [
         'PLUGINS_REGISTER_INVALID_ARGUMENT:'
-        'a plugin must be an object literal or a function return this object'
+        'a plugin must be an object literal or a function returning an object literal'
         'with keys such as `name`, `required` and `hooks`,'
         'got "abc" instead.'
       ].join ' '
