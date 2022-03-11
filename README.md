@@ -145,7 +145,7 @@ Execute a hander function and its associated hooks. The first argument is an obj
 * `handler` (function)   
   The function to decorate, receive the value assocaited with the `args` property.
 * `name` (string)   
-  The plugin hook to refer to.
+  The name of the hook to execute.
 * `hooks` ([hook])   
   List of completary hooks from the end user.
 
@@ -160,7 +160,7 @@ get({name, hooks, sort})
 The `get` function return hooks. It expects a property `option` which is a literal object with the properties:
 
 * `name` (string)   
-  Name of the hook.
+  The name of the hook.
 * `hooks` ([hook])
   List of completary hooks from the end user.
 * `sort` (boolean)   
@@ -178,6 +178,16 @@ Plugin can be provided when instantiating Plug-And-Play by passing the `plugins`
 
 * `plugin` (plugin)   
   A plugin object.
+
+### Registed function
+
+The function signature is:
+
+```
+registered(name)
+```
+
+Check if a plugin is registered.
 
 ## Roadmap
 
