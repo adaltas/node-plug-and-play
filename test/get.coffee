@@ -29,6 +29,30 @@ describe 'plugandplay.get', ->
         'module/after', 'module/origin', 'module/before'
       ]
   
+  describe 'require', ->
+
+    it 'refer to registered plugin', ->
+      plugins = plugandplay()
+      plugins.register
+        name: 'module/required'
+      plugins.register
+        name: 'module/parent'
+        require: 'module/required'
+        hooks: 'my:hook':
+          handler: (->)
+      plugins.get name: 'my:hook'
+
+    it 'refer to unregistered plugin', ->
+      plugins = plugandplay()
+      plugins.register
+        name: 'module/parent'
+        require: 'module/required'
+        hooks: 'my:hook':
+          handler: (->)
+      ( ->
+        plugins.get name: 'my:hook'
+      ).should.throw 'REQUIRED_PLUGIN: the plugin "my:hook" require a plugin named "module/required" which is not unregistered.'
+  
   describe 'errors', ->
 
     it 'when plugin exists but no matching hook is exposed', ->

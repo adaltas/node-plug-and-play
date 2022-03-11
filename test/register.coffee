@@ -43,3 +43,13 @@ describe 'plugandplay.register', ->
         'a hook must be defined as a function or as an object with an handler property,'
         'got "ohno" instead.'
       ].join ' '
+
+    it 'when require not a string or an array', ->
+      ( ->
+        plugins = plugandplay()
+        plugins.register require: true
+      ).should.throw [
+        'PLUGINS_REGISTER_INVALID_REQUIRE:'
+        'the `require` property must be a string or an array,'
+        'got true.'
+      ].join ' '
