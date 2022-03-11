@@ -1,4 +1,5 @@
-const {plugins, print} = require('./lib')
+
+import {plugins, print} from './lib.js';
 
 plugins.register({
   hooks: {
