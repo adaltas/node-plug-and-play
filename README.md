@@ -124,11 +124,12 @@ Alternatively, a plugin can be defined as a function which return the same plugi
 A hook is an object literal with the properties:
 
 * `after` ([string])   
-  List of plugin names with hook of the same name are to be executed before, a string is coerced to an array.
+  List of plugin names with hooks of the same name are to be executed before, a
+  string is coerced to an array.
 * `name` (string)   
   Name to indentify the hook.
 * `before` ([string])   
-  List of plugin names with hook of the same name are to be executed after, a string is coerced to an array.
+  List of plugin names with hooks of the same name are to be executed after, a string is coerced to an array.
 
 Note, when referencing plugins with `after` and `before`, the plugins do not need to exists. If they do, they are required to export a hook of the same name.
 

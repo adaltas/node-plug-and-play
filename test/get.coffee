@@ -28,6 +28,20 @@ describe 'plugandplay.get', ->
       .should.eql [
         'module/after', 'module/origin', 'module/before'
       ]
+
+    it 'refer to an optional and missing dependency', ->
+      plugins = plugandplay()
+      plugins.register
+        name: 'module/origin'
+        hooks: 'my:hook':
+          after: 'module/after'
+          before: 'module/before'
+          handler: (->)
+      plugins.get name: 'my:hook'
+      .map (hook) -> hook.plugin
+      .should.eql [
+        'module/origin'
+      ]
   
   describe 'require', ->
 
@@ -55,10 +69,11 @@ describe 'plugandplay.get', ->
   
   describe 'errors', ->
 
-    it 'when plugin exists but no matching hook is exposed', ->
+    it 'after plugin exists but contains no hooks', ->
       (->
         plugins = plugandplay()
-        plugins.register name: 'module/after'
+        plugins.register
+          name: 'module/after'
         plugins.register
           hooks: 'my:hook':
             after: 'module/after'
@@ -71,9 +86,13 @@ describe 'plugandplay.get', ->
         'in plugin "module/after" which does not exists.'
       ].join ' '
 
-    it 'when plugin does not exists', ->
+    it 'before plugin exists but contains no matching hooks', ->
       (->
         plugins = plugandplay()
+        plugins.register
+          name: 'module/before'
+          hooks: 'non:matching:hook':
+            handler: (->)
         plugins.register
           hooks: 'my:hook':
             before: 'module/before'
