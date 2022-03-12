@@ -77,10 +77,35 @@ const normalize_hook = function(name, hook) {
 
 const errors = {
   PLUGINS_HOOK_AFTER_INVALID: function({name, plugin, after}) {
-    throw error('PLUGINS_HOOK_AFTER_INVALID', [`the hook ${JSON.stringify(name)}`, plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0, 'references an after dependency', `in plugin ${JSON.stringify(after)} which does not exists`]);
+    throw error('PLUGINS_HOOK_AFTER_INVALID', [
+      `the hook ${JSON.stringify(name)}`,
+      plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0,
+      'references an after dependency',
+      `in plugin ${JSON.stringify(after)} which does not exists.`
+    ]);
   },
   PLUGINS_HOOK_BEFORE_INVALID: function({name, plugin, before}) {
-    throw error('PLUGINS_HOOK_BEFORE_INVALID', [`the hook ${JSON.stringify(name)}`, plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0, 'references a before dependency', `in plugin ${JSON.stringify(before)} which does not exists`]);
+    throw error('PLUGINS_HOOK_BEFORE_INVALID', [
+      `the hook ${JSON.stringify(name)}`,
+      plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0,
+      'references a before dependency',
+      `in plugin ${JSON.stringify(before)} which does not exists.`
+    ]);
+  },
+  REQUIRED_PLUGIN: function({name, require}){
+    throw error('REQUIRED_PLUGIN', [
+      `the plugin ${JSON.stringify(name)}`,
+      'require a plugin',
+      `named ${JSON.stringify(require)} which is not unregistered.`
+    ]);
+  },
+  PLUGINS_REGISTER_INVALID_REQUIRE: function({name, require}){
+    throw error('PLUGINS_REGISTER_INVALID_REQUIRE', [
+      'the `require` property',
+      name ? `in plugin ${JSON.stringify(name)}`: void 0,
+      'must be a string or an array,',
+      `got ${JSON.stringify(require)}.`
+    ]);
   }
 };
 
@@ -95,7 +120,7 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
         plugin = plugin.apply(null, args);
       }
       if (!is_object_literal(plugin)) {
-        throw error('PLUGINS_REGISTER_INVALID_ARGUMENT', ['a plugin must be an object literal or a function return this object', 'with keys such as `name`, `required` and `hooks`,', `got ${JSON.stringify(plugin)} instead.`]);
+        throw error('PLUGINS_REGISTER_INVALID_ARGUMENT', ['a plugin must be an object literal or a function returning an object literal', 'with keys such as `name`, `required` and `hooks`,', `got ${JSON.stringify(plugin)} instead.`]);
       }
       if (plugin.hooks == null) {
         plugin.hooks = {};
@@ -103,22 +128,53 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
       for (let name in plugin.hooks) {
         plugin.hooks[name] = normalize_hook(name, plugin.hooks[name]);
       }
+      if (plugin.require == null){
+        plugin.require = [];
+      }else if (typeof plugin.require === 'string'){
+        plugin.require = [plugin.require];
+      }
+      if(!Array.isArray(plugin.require)){
+        throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({name: plugin.name, require: plugin.require})
+      }
       store.push(plugin);
       return chain || this;
+    },
+    registered: function(name){
+      for(const plugin of store){
+        if (plugin.name === name){
+          return true;
+        }
+      }
+      if(parent != null && parent.registered(name)){
+        return true;
+      }
+      return false;
     },
     get: function({name, hooks = [], sort = true}) {
       hooks = [
         ...normalize_hook(name, hooks),
         ...array_flatten(
-          store.map(function(plugin){
+          store
+          .map(function(plugin){
+            // Only filter plugins with the requested hook
             if(!plugin.hooks[name]) return;
+            // Validate plugin requirements
+            for(const require of plugin.require){
+              if(!registry.registered(require)){
+                throw errors.REQUIRED_PLUGIN({
+                  name: name,
+                  require: require
+                });
+              }
+            }
             return plugin.hooks[name].map(function(hook){
               return merge({
-                plugin: plugin.name
+                plugin: plugin.name,
+                require: plugin.require
               }, hook);
             });
           })
-            .filter(function(hook){return hook !== undefined;})
+          .filter(function(hook){return hook !== undefined;})
         ),
         ...(parent ? parent.get({
           name: name,
@@ -136,32 +192,45 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
       const edges_after = hooks
         .map(function(hook){
           if(!hook.after) return;
-          return hook.after.map(function(after){
+          return hook.after
+          .map(function(after){
           // This check assume the plugin has the same hooks which is not always the case
             if(!index[after]){
-              throw errors.PLUGINS_HOOK_AFTER_INVALID({
-                name: name,
-                plugin: hook.plugin,
-                after: after
-              });
+              if(registry.registered(after)){
+                throw errors.PLUGINS_HOOK_AFTER_INVALID({
+                  name: name,
+                  plugin: hook.plugin,
+                  after: after
+                });
+              }else {
+                return undefined;
+              }
             }
             return [index[after], hook];
-          });
-        }).filter(function(hook){return hook !== undefined;});
+          })
+          .filter(function(hook){ return hook !== undefined});
+        })
+        .filter(function(hook){return hook !== undefined;});
       const edges_before = hooks
         .map(function(hook){
           if(!hook.before) return;
           return hook.before.map(function(before){
             if(!index[before]){
-              throw errors.PLUGINS_HOOK_BEFORE_INVALID({
-                name: name,
-                plugin: hook.plugin,
-                before: before
-              });
+              if(registry.registered(before)){
+                throw errors.PLUGINS_HOOK_BEFORE_INVALID({
+                  name: name,
+                  plugin: hook.plugin,
+                  before: before
+                });
+              }else {
+                return undefined;
+              }
             }
             return [hook, index[before]];
-          });
-        }).filter(function(hook){return hook !== undefined;});
+          })
+          .filter(function(hook){ return hook !== undefined});
+        })
+        .filter(function(hook){return hook !== undefined;});
       const edges = array_flatten([...edges_after, ...edges_before], 0);
       return toposort.array(hooks, edges);
     },
