@@ -84,6 +84,7 @@
     "lint:coffee": "broken, see https://github.com/helixbass/eslint-plugin-coffee/issues/77; eslint -c .eslintrc.test.json 'test/**/*.coffee'",
     "lint:fix": "eslint --fix 'lib/**/*.js' && eslint --fix -c .eslintrc.test.json 'test/**/*.coffee'",
     "prepare": "husky install",
+    "prepublish": "git push --follow-tags origin master",
     "test": "mocha 'test/**/*.coffee'",
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
