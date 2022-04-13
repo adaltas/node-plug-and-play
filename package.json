@@ -51,8 +51,8 @@
     }
   },
   "files": [
-    "./dist",
-    "./lib"
+    "dist",
+    "lib"
   ],
   "homepage": "https://github.com/adaltas/node-plug-and-play#readme",
   "keywords": [
