@@ -50,6 +50,10 @@
       "require": "./dist/cjs/index.cjs"
     }
   },
+  "files": [
+    "./dist",
+    "./lib"
+  ],
   "homepage": "https://github.com/adaltas/node-plug-and-play#readme",
   "keywords": [
     "plugin",
