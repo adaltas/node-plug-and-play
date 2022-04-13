@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.6](https://github.com/adaltas/node-plug-and-play/compare/v2.5.5...v2.5.6) (2022-04-13)
+
+
+### Bug Fixes
+
+* files in package.json without slash ([33f7620](https://github.com/adaltas/node-plug-and-play/commit/33f762020f8985447e740cd274ac7e032bd8df68))
+
 ### [2.5.5](https://github.com/adaltas/node-plug-and-play/compare/v2.5.4...v2.5.5) (2022-04-13)
 
 
