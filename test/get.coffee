@@ -65,7 +65,7 @@ describe 'plugandplay.get', ->
           handler: (->)
       ( ->
         plugins.get name: 'my:hook'
-      ).should.throw 'REQUIRED_PLUGIN: the plugin "my:hook" require a plugin named "module/required" which is not unregistered.'
+      ).should.throw 'REQUIRED_PLUGIN: the plugin "module/parent" requires a plugin named "module/required" which is not unregistered.'
   
   describe 'errors', ->
 
