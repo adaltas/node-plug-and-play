@@ -195,3 +195,17 @@ Check if a plugin is registered.
 ## Roadmap
 
 Worth considering: move the `name` property of `get` and `call` into the first argument and move the other properties into a second argument named option.
+
+## Developers
+
+To automatically generate a new version:
+
+```
+yarn run release
+```
+
+There is currently no CI, copy/paste the code after release
+
+```
+git push --follow-tags origin master && npm publish
+```
