@@ -204,8 +204,8 @@ To automatically generate a new version:
 yarn run release
 ```
 
-There is currently no CI, copy/paste the code after release
+There is currently no CI, copy/paste the code after release. Note, commits and tags are automatically pushed before publishing.
 
 ```
-git push --follow-tags origin master && npm publish
+npm publish
 ```
