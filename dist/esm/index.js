@@ -1,9 +1,8 @@
-import { is_object_literal, is_object, merge } from 'mixme';
+import { is_object_literal, merge, is_object } from 'mixme';
 import toposort from 'toposort';
 
 const PlugableError = class PlugableError extends Error {
   constructor(code, message, ...contexts) {
-    var context, i, key, len, value;
     if (Array.isArray(message)) {
       message = message.filter(function (line) {
         return !!line;
@@ -15,13 +14,13 @@ const PlugableError = class PlugableError extends Error {
       Error.captureStackTrace(this, PlugableError);
     }
     this.code = code;
-    for (i = 0, len = contexts.length; i < len; i++) {
-      context = contexts[i];
-      for (key in context) {
+    for (const i = 0; i < contexts.length; i++) {
+      const context = contexts[i];
+      for (const key in context) {
         if (key === 'code') {
           continue;
         }
-        value = context[key];
+        const value = context[key];
         if (value === void 0) {
           continue;
         }
