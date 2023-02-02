@@ -1,8 +1,10 @@
 .*
+/docs/types
 /node_modules
 /package-lock.json
 /yarn.lock
 /yarn-error.log
+*.tsbuildinfo
 !.husky
 !.prettierrc.yml
 !.gitignore

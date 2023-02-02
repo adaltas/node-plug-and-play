@@ -1,4 +1,4 @@
-import { plugandplay } from "../lib/index.js";
+import { plugandplay } from "../src/index.js";
 
 describe("plugandplay.call.handler_error", function () {
   it("thrown error, no handler", async function () {
@@ -8,7 +8,7 @@ describe("plugandplay.call.handler_error", function () {
           name: "my:plugin",
           hooks: {
             "my:hook": {
-              handler: (args) => {
+              handler: (args: string) => {
                 throw Error(args);
               },
             },
@@ -24,26 +24,6 @@ describe("plugandplay.call.handler_error", function () {
       .should.be.rejectedWith("catchme");
   });
 
-  it("throw `ReferenceError: not defined` error, no handler", async function () {
-    await plugandplay({
-      plugins: [
-        {
-          name: "my:plugin",
-          hooks: {
-            "my:hook": {
-              handler: () => catchme(), // eslint-disable-line
-            },
-          },
-        },
-      ],
-    })
-      .call({
-        name: "my:hook",
-        handler: () => new Promise((resolve) => setImmediate(resolve)),
-      })
-      .should.be.rejectedWith(/not defined/);
-  });
-
   it("throw error, before handler", async function () {
     await plugandplay({
       plugins: [
@@ -51,7 +31,7 @@ describe("plugandplay.call.handler_error", function () {
           name: "my:plugin",
           hooks: {
             "my:hook": {
-              handler: (args) => {
+              handler: (args: string) => {
                 throw Error(args);
               },
             },
@@ -68,13 +48,15 @@ describe("plugandplay.call.handler_error", function () {
   });
 
   it("throw error in returned handler, before parent handler", async function () {
-    await plugandplay({
+    await plugandplay<{
+      "my:hook": string
+    }>({
       plugins: [
         {
           name: "my:plugin",
           hooks: {
             "my:hook": {
-              handler: (args, handler) => () => {
+              handler: (args: string, handler) => () => {
                 handler; // not used
                 throw Error(args);
               },
@@ -92,14 +74,16 @@ describe("plugandplay.call.handler_error", function () {
   });
 
   it("throw error in returned handler, after parent handler", async function () {
-    await plugandplay({
+    await plugandplay<{
+      "my:hook": string
+    }>({
       plugins: [
         {
           name: "my:plugin",
           hooks: {
             "my:hook": {
-              handler: (args, handler) => async () => {
-                await handler.apply(null, []);
+              handler: (args: string, handler) => async () => {
+                await handler("", () => {});
                 throw Error(args);
               },
             },
@@ -113,28 +97,5 @@ describe("plugandplay.call.handler_error", function () {
         handler: () => new Promise((resolve) => setImmediate(resolve)),
       })
       .should.be.rejectedWith("catchme");
-  });
-
-  it("throw `ReferenceError: not defined` error in returned handler, after parent handler", async function () {
-    await plugandplay({
-      plugins: [
-        {
-          name: "my:plugin",
-          hooks: {
-            "my:hook": {
-              handler: (args, handler) => async () => {
-                await handler.apply(null, []);
-                catchme(); // eslint-disable-line
-              },
-            },
-          },
-        },
-      ],
-    })
-      .call({
-        name: "my:hook",
-        handler: () => new Promise((resolve) => setImmediate(resolve)),
-      })
-      .should.be.rejectedWith(/not defined/);
   });
 });

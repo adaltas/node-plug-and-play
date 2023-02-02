@@ -1,5 +1,12 @@
-const PlugableError = class PlugableError extends Error {
-  constructor(code, message, ...contexts) {
+
+class PlugableError extends Error {
+  public code: string;
+  [index: string]: unknown;
+  constructor(
+    code: string,
+    message: string | (string | object)[],
+    ...contexts: Record<string, unknown>[]
+  ) {
     if (Array.isArray(message)) {
       message = message
         .filter(function (line) {
@@ -31,6 +38,7 @@ const PlugableError = class PlugableError extends Error {
     }
   }
 };
-export default (function () {
-  return new PlugableError(...arguments);
+export { PlugableError };
+export default (function (...args: ConstructorParameters<typeof PlugableError>) {
+  return new PlugableError(...args);
 });

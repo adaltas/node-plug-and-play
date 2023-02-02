@@ -1,4 +1,4 @@
-import { plugandplay } from "../lib/index.js";
+import { plugandplay } from "../src/index.js";
 
 describe("plugandplay.option.plugin", function () {
   it("instantiate with plugin objects", function () {
@@ -13,7 +13,7 @@ describe("plugandplay.option.plugin", function () {
       ],
     })
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call())
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([1, 2]);
   });
 
@@ -25,7 +25,7 @@ describe("plugandplay.option.plugin", function () {
       ],
     })
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call())
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([1, 2]);
   });
 });

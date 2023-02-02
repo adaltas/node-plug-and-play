@@ -16,8 +16,12 @@
     "@eslint/js": "^9.8.0",
     "@rollup/plugin-eslint": "^9.0.5",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@types/mocha": "^10.0.7",
+    "@types/should": "^11.2.0",
+    "@types/toposort": "^2.0.7",
     "dedent": "^1.5.3",
     "eslint": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-mocha": "^10.4.3",
     "eslint-plugin-prettier": "^5.2.1",
     "husky": "^9.1.3",
@@ -26,17 +30,24 @@
     "prettier": "^3.3.3",
     "rollup": "^4.19.1",
     "should": "~13.2.3",
-    "standard-version": "^9.5.0"
+    "standard-version": "^9.5.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.16.5",
+    "typedoc": "^0.26.5",
+    "typedoc-plugin-markdown": "^4.2.3",
+    "typescript": "^5.5.4"
   },
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
+      "types": "./dist/esm/index.d.js",
       "require": "./dist/cjs/index.cjs"
     }
   },
   "files": [
     "dist",
-    "lib"
+    "lib",
+    "!**/*.tsbuildinfo"
   ],
   "homepage": "https://github.com/adaltas/node-plug-and-play#readme",
   "keywords": [
@@ -54,9 +65,10 @@
     "*.js": "npm run lint:fix",
     "*.md": "prettier -w"
   },
-  "main": "lib/index.js",
+  "main": "dist/esm/index.js",
   "mocha": {
     "inline-diffs": true,
+    "loader": "ts-node/esm",
     "recursive": true,
     "reporter": "spec",
     "require": [
@@ -70,14 +82,17 @@
     "url": "git+https://github.com/adaltas/node-plug-and-play.git"
   },
   "scripts": {
-    "build": "npx rollup -c",
+    "_build": "npx rollup -c",
+    "docs:html": "typedoc --tsconfig tsconfig.src.json --readme none --out docs/types/html src/index.ts",
+    "docs:md": "typedoc --tsconfig tsconfig.src.json --plugin typedoc-plugin-markdown --readme none --out docs/types/md src/index.ts",
+    "build": "tsc --build --clean && tsc --project tsconfig.src.json",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "lint:staged": "npx lint-staged",
     "prepare": "husky install",
     "prepublishOnly": "git push --follow-tags origin master",
     "pretest": "npm run build",
-    "test": "mocha 'test/**/*.js'",
+    "test": "mocha 'test/**/*.ts' 'test/**/*.js'",
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
     "release:patch": "standard-version --release-as patch",
