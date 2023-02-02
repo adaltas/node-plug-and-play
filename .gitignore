@@ -4,6 +4,7 @@
 /yarn.lock
 /yarn-error.log
 !.eslintrc.json
+!.eslintrc.cjs
 !.eslintrc.test.json
 !.husky
 !.travis.yml
