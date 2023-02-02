@@ -1,7 +1,7 @@
 
 import { execFile as _execFile } from 'child_process'
 import util from 'util'
-execFile = util.promisify(_execFile);
+execFile = util.promisify(_execFile)
 
 describe 'plugandplay.sample', ->
 

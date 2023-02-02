@@ -5,25 +5,25 @@ describe 'plugandplay.call', ->
   
   describe 'api', ->
 
-   it 'expect 1 argument', ->
-     plugandplay()
-     .call {}, {}
-     .should.be.rejectedWith
-       code: 'PLUGINS_INVALID_ARGUMENTS_NUMBER'
+    it 'expect 1 argument', ->
+      plugandplay()
+      .call {}, {}
+      .should.be.rejectedWith
+        code: 'PLUGINS_INVALID_ARGUMENTS_NUMBER'
 
-   it 'argument must a an object', ->
-     plugandplay()
-     .call []
-     .should.be.rejectedWith
-       code: 'PLUGINS_INVALID_ARGUMENT_PROPERTIES'
+    it 'argument must a an object', ->
+      plugandplay()
+      .call []
+      .should.be.rejectedWith
+        code: 'PLUGINS_INVALID_ARGUMENT_PROPERTIES'
 
-   it 'object must contains `name` and be a string', ->
-     plugandplay()
-     .call
-       name: 123
-       handler: (->)
-     .should.be.rejectedWith
-       code: 'PLUGINS_INVALID_ARGUMENT_NAME'
+    it 'object must contains `name` and be a string', ->
+      plugandplay()
+      .call
+        name: 123
+        handler: (->)
+      .should.be.rejectedWith
+        code: 'PLUGINS_INVALID_ARGUMENT_NAME'
     
     it 'no aguments', ->
       count = 0
