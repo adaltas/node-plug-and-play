@@ -1,13 +1,13 @@
 
+import { execFile as _execFile } from 'child_process'
+import util from 'util'
+execFile = util.promisify(_execFile);
+
 describe 'plugandplay.sample', ->
 
   it 'validate', ->
-    data = []
-    write = process.stdout.write
-    process.stdout.write = (chunk) -> data.push chunk
-    require '../sample'
-    process.stdout.write = write
-    data.join('').trim().should.eql """
+    { stdout } = await execFile('node', ['./sample'])
+    stdout.trim().should.eql """
     >>>>>>>>>>>
     Hello World
     <<<<<<<<<<<
