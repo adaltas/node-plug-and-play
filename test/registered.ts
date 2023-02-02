@@ -1,4 +1,4 @@
-import { plugandplay } from "../lib/index.js";
+import { plugandplay } from "../src/index.js";
 
 describe("plugandplay.registered", function () {
   it("not registered return false", function () {
@@ -20,6 +20,7 @@ describe("plugandplay.registered", function () {
       plugins: [
         {
           name: "module/registered",
+          hooks: {}
         },
       ],
     })
@@ -34,6 +35,7 @@ describe("plugandplay.registered", function () {
           plugins: [
             {
               name: "module/registered",
+              hooks: {}
             },
           ],
         }),

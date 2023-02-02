@@ -1,4 +1,4 @@
-import { plugandplay } from "../lib/index.js";
+import { plugandplay } from "../src/index.js";
 
 describe("option.args", function () {
   it("with option.plugin", function () {
@@ -12,7 +12,7 @@ describe("option.args", function () {
     })
       // Test the registered hooks
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call())
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([["a", "b"]]);
   });
 
@@ -25,7 +25,7 @@ describe("option.args", function () {
       }))
       // Test the registered hooks
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call())
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([["a", "b"]]);
   });
 });

@@ -1,4 +1,4 @@
-import { plugandplay } from "../lib/index.js";
+import { plugandplay } from "../src/index.js";
 
 describe("plugandplay.get", function () {
   describe("option `name`", function () {
@@ -8,12 +8,12 @@ describe("plugandplay.get", function () {
         .register({ hooks: { "my:hook": () => 2 } })
         .register({ hooks: { "another:hook": () => 2 } })
         .get({ name: "my:hook" })
-        .map((hook) => hook.handler.call())
+        .map((hook) => hook.handler(undefined, () => {}))
         .should.eql([1, 2]);
     });
 
     it("normalize default", function () {
-      const p = plugandplay().register({
+      const pnp = plugandplay().register({
         name: "module/origin",
         hooks: {
           "my:hook:function": () => {},
@@ -22,16 +22,20 @@ describe("plugandplay.get", function () {
           },
         },
       });
-      p.get({ name: "my:hook:function" }).should.eql([
+      pnp.get({ name: "my:hook:function" }).should.eql([
         {
+          after: [],
+          before: [],
           name: "my:hook:function",
           plugin: "module/origin",
           require: [],
           handler: () => {},
         },
       ]);
-      p.get({ name: "my:hook:property" }).should.eql([
+      pnp.get({ name: "my:hook:property" }).should.eql([
         {
+          after: [],
+          before: [],
           name: "my:hook:property",
           plugin: "module/origin",
           require: [],
@@ -113,6 +117,7 @@ describe("plugandplay.get", function () {
       plugandplay()
         .register({
           name: "module/required",
+          hooks: {}
         })
         .register({
           name: "module/parent",
@@ -151,6 +156,7 @@ describe("plugandplay.get", function () {
         plugandplay()
           .register({
             name: "module/after",
+            hooks: {}
           })
           .register({
             hooks: {
