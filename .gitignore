@@ -5,6 +5,7 @@
 /yarn-error.log
 !.eslintrc.json
 !.eslintrc.cjs
+!.prettierrc
 !.eslintrc.test.json
 !.husky
 !.travis.yml
