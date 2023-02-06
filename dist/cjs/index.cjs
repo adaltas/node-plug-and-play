@@ -159,7 +159,9 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
     },
     get: function({name, hooks = [], sort = true}) {
       hooks = [
+        // Merge hooks provided by the user
         ...normalize_hook(name, hooks),
+        // With hooks present in the store
         ...array_flatten(
           store
           .map(function(plugin){
@@ -201,7 +203,7 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
           if(!hook.after) return;
           return hook.after
           .map(function(after){
-          // This check assume the plugin has the same hooks which is not always the case
+            // This check assume the plugin has the same hooks which is not always the case
             if(!index[after]){
               if(registry.registered(after)){
                 throw errors.PLUGINS_HOOK_AFTER_INVALID({
