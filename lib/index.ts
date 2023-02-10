@@ -206,6 +206,12 @@ const errors = {
   },
 };
 
+type NormalizedPlugin = Plugin & {
+  hooks: {
+    [name: string]: Hook[];
+  };
+};
+
 const plugandplay = function ({
   args,
   chain,
@@ -213,7 +219,7 @@ const plugandplay = function ({
   plugins = [],
 }: plugangplayArgs = {}): Registry {
   // Internal plugin store
-  const store: Plugin[] = [];
+  const store: NormalizedPlugin[] = [];
   // Public API definition
   const registry: Registry = {
     register: function (userPlugin) {
@@ -254,7 +260,7 @@ const plugandplay = function ({
           }
         }
 
-        store.push(plugin as Plugin);
+        store.push(plugin as NormalizedPlugin);
         return chain || this;
       }
     },
