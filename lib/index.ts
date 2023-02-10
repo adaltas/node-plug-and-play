@@ -283,12 +283,14 @@ const plugandplay = function ({
             // Only filter plugins with the requested hook
             if (!plugin.hooks[name]) return;
             // Validate plugin requirements
+            if (plugin.require) {
             for (const require of plugin.require) {
               if (!registry.registered(require)) {
                 throw errors.REQUIRED_PLUGIN({
                   plugin: plugin.name,
                   require: require,
                 });
+                }
               }
             }
             return plugin.hooks[name].map(function (hook) {
