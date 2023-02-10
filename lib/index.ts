@@ -373,12 +373,13 @@ const plugandplay = function ({
         .filter(function (hook) {
           return hook !== undefined;
         }) as [Hook, Hook][][];
-      const edges = [...edges_after, ...edges_before].flat(0);
+      const edges = [...edges_after, ...edges_before].flat(1);
       return toposort.array(mergedHooks, edges).map((hook) => {
         if (hook) {
           if ('require' in hook) delete hook.require;
           if ('plugin' in hook) delete hook.plugin;
         }
+        return hook;
       });
     },
     // Call a hook against each registered plugin matching the hook name
