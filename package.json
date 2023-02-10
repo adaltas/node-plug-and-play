@@ -73,7 +73,7 @@
   ],
   "license": "MIT",
   "main": "lib/index.js",
-  "types": "./types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "mocha": {
     "inline-diffs": true,
     "loader": "./test/loaders/coffee.js",
