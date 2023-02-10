@@ -2,10 +2,10 @@ import { is_object_literal, is_object, merge } from 'mixme';
 import toposort from 'toposort';
 import error from './error';
 
-type HookHandler = (
-  args: object,
-  handler?: HookHandler
-) => HookHandler | null | Promise<HookHandler>;
+export type HookHandler<T extends Record<string, unknown>> = (
+  args: T,
+  handler?: HookHandler<any>
+) => null | void | HookHandler<any> | Promise<HookHandler<any>>;
 
 export interface Hook {
   /**
@@ -17,16 +17,16 @@ export interface Hook {
    */
   before?: string[];
   /**
-   * Name to indentify the hook.
-   */
-  name: string;
-  /**
    * The hook handler to be executed.
    */
-  handler: HookHandler;
+  handler: HookHandler<any>;
+  /**
+   * Name to indentify the hook.
+   */
+  name?: string;
 
-  require?: string[];
   plugin?: string;
+  require?: string[];
 }
 
 export interface Plugin {
@@ -34,7 +34,7 @@ export interface Plugin {
    * List of hooks identified by hook names.
    */
   hooks: {
-    [name: string]: Hook[];
+    [name: string]: Hook[] | Hook | HookHandler<any>;
   };
   /**
    * Name of the plugin.
@@ -43,18 +43,18 @@ export interface Plugin {
   /**
    * Names of the required plugins.
    */
-  require: string[];
+  require?: string[];
 }
 
-interface callArgs {
+interface callArgs<T extends Record<string, unknown>> {
   /**
    * Argument passed to the handler function as well as all hook handlers.
    */
-  args?: object;
+  args?: T;
   /**
    * Function to decorate, receive the value associated with the `args` property.
    */
-  handler: HookHandler;
+  handler: HookHandler<T>;
   /**
    * List of completary hooks from the end user.
    */
@@ -88,11 +88,11 @@ export interface Registry {
   /**
    * Execute a hander function and its associated hooks.
    */
-  call: (args: callArgs) => Promise<unknown>;
+  call: (args: callArgs<any>) => Promise<unknown>;
   /**
    * Execute a hander function and its associated hooks, synchronously.
    */
-  call_sync: (args: callArgs) => unknown;
+  call_sync: (args: callArgs<any>) => unknown;
   /**
    * Retrieves registered hooks.
    */
@@ -108,8 +108,8 @@ export interface Registry {
   registered: (name: string) => boolean;
 }
 
-export type plugangplayArgs = {
-  args?: object;
+type plugangplayArgs = {
+  args?: Record<string, unknown>;
   chain?: Registry;
   parent?: Registry;
   plugins?: Plugin[];
@@ -117,14 +117,14 @@ export type plugangplayArgs = {
 
 const normalize_hook = function (
   name: string,
-  userHooks: Hook | Hook[]
+  userHooks: Hook | Hook[] | HookHandler<any>
 ): Hook[] {
   const hooks = !Array.isArray(userHooks) ? [userHooks] : userHooks;
   return hooks.map(function (userHook) {
     const hook: Partial<Hook> = {};
 
     if (typeof userHook === 'function') {
-      hook.handler = userHook as HookHandler;
+      hook.handler = userHook as HookHandler<Record<string, unknown>>;
     } else if (!is_object(userHook) && Object.keys(userHook).length === 0) {
       throw error('PLUGINS_HOOK_INVALID_HANDLER', [
         'no hook handler function could be found,',
@@ -284,12 +284,12 @@ const plugandplay = function ({
             if (!plugin.hooks[name]) return;
             // Validate plugin requirements
             if (plugin.require) {
-            for (const require of plugin.require) {
-              if (!registry.registered(require)) {
-                throw errors.REQUIRED_PLUGIN({
-                  plugin: plugin.name,
-                  require: require,
-                });
+              for (const require of plugin.require) {
+                if (!registry.registered(require)) {
+                  throw errors.REQUIRED_PLUGIN({
+                    plugin: plugin.name,
+                    require: require,
+                  });
                 }
               }
             }
