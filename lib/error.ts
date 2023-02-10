@@ -1,5 +1,5 @@
 const PlugableError = class PlugableError extends Error {
-  private code: string;
+  public code: string;
   [index: string]: unknown; // required to allow adding class props dynamically
   constructor(
     code: string,
@@ -11,7 +11,7 @@ const PlugableError = class PlugableError extends Error {
         .filter(function (line) {
           return !!line;
         })
-        .join(" ");
+        .join(' ');
     }
     message = `${code}: ${message}`;
     super(message);
@@ -22,7 +22,7 @@ const PlugableError = class PlugableError extends Error {
     for (let i = 0; i < contexts.length; i++) {
       const context = contexts[i];
       for (const key in context) {
-        if (key === "code") {
+        if (key === 'code') {
           continue;
         }
         const value = context[key];
@@ -32,8 +32,8 @@ const PlugableError = class PlugableError extends Error {
         this[key] = Buffer.isBuffer(value)
           ? value.toString()
           : value === null
-            ? value
-            : JSON.parse(JSON.stringify(value));
+          ? value
+          : JSON.parse(JSON.stringify(value));
       }
     }
   }
