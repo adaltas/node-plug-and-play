@@ -1,6 +1,7 @@
 import { plugins, print } from './lib.js';
 
 plugins.register({
+  name: 'hello-world',
   hooks: {
     'hooks:print': ({ data }, handler) => {
       // Alter the argument
