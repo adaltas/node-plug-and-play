@@ -1,21 +1,21 @@
-type HookHandler<T extends Record<string, unknown>> = (args: T, handler?: HookHandler<any>) => null | void | HookHandler<any> | Promise<HookHandler<any>>;
+type HookHandler<T extends object> = (args: T, handler?: HookHandler<object>) => null | void | HookHandler<object> | Promise<HookHandler<object>>;
 interface Hook {
     after?: string[];
     before?: string[];
-    handler: HookHandler<any>;
+    handler: HookHandler<object>;
     name?: string;
     plugin?: string;
     require?: string[];
 }
 interface Plugin {
     hooks: {
-        [name: string]: Hook[] | Hook | HookHandler<any>;
+        [name: string]: Hook[] | Hook | HookHandler<object>;
     };
     name: string;
     require?: string[];
 }
-interface callArgs<T extends Record<string, unknown>> {
-    args?: T;
+interface callArgs<T extends object> {
+    args: T | [];
     handler: HookHandler<T>;
     hooks?: Hook[];
     name: string;
@@ -26,14 +26,14 @@ interface getArgs {
     sort?: boolean;
 }
 interface Registry {
-    call: (args: callArgs<any>) => Promise<unknown>;
-    call_sync: (args: callArgs<any>) => unknown;
+    call: (args: callArgs<object>) => Promise<unknown>;
+    call_sync: (args: callArgs<object>) => unknown;
     get: (args: getArgs) => Hook[];
     register: (userPlugin: Plugin | ((args?: object) => Plugin)) => Registry;
     registered: (name: string) => boolean;
 }
 type plugangplayArgs = {
-    args?: Record<string, unknown>;
+    args?: object;
     chain?: Registry;
     parent?: Registry;
     plugins?: Plugin[];
