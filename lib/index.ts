@@ -2,10 +2,10 @@ import { is_object_literal, is_object, merge } from 'mixme';
 import toposort from 'toposort';
 import error from './error';
 
-export type HookHandler<T extends Record<string, unknown>> = (
+export type HookHandler<T extends object> = (
   args: T,
-  handler?: HookHandler<any>
-) => null | void | HookHandler<any> | Promise<HookHandler<any>>;
+  handler?: HookHandler<object>
+) => null | void | HookHandler<object> | Promise<HookHandler<object>>;
 
 export interface Hook {
   /**
@@ -19,7 +19,7 @@ export interface Hook {
   /**
    * The hook handler to be executed.
    */
-  handler: HookHandler<any>;
+  handler: HookHandler<object>;
   /**
    * Name to indentify the hook.
    */
@@ -34,7 +34,7 @@ export interface Plugin {
    * List of hooks identified by hook names.
    */
   hooks: {
-    [name: string]: Hook[] | Hook | HookHandler<any>;
+    [name: string]: Hook[] | Hook | HookHandler<object>;
   };
   /**
    * Name of the plugin.
@@ -46,11 +46,11 @@ export interface Plugin {
   require?: string[];
 }
 
-interface callArgs<T extends Record<string, unknown>> {
+interface callArgs<T extends object> {
   /**
    * Argument passed to the handler function as well as all hook handlers.
    */
-  args?: T;
+  args: T | [];
   /**
    * Function to decorate, receive the value associated with the `args` property.
    */
@@ -88,11 +88,11 @@ export interface Registry {
   /**
    * Execute a hander function and its associated hooks.
    */
-  call: (args: callArgs<any>) => Promise<unknown>;
+  call: (args: callArgs<object>) => Promise<unknown>;
   /**
    * Execute a hander function and its associated hooks, synchronously.
    */
-  call_sync: (args: callArgs<any>) => unknown;
+  call_sync: (args: callArgs<object>) => unknown;
   /**
    * Retrieves registered hooks.
    */
@@ -109,7 +109,7 @@ export interface Registry {
 }
 
 type plugangplayArgs = {
-  args?: Record<string, unknown>;
+  args?: object;
   chain?: Registry;
   parent?: Registry;
   plugins?: Plugin[];
@@ -117,14 +117,14 @@ type plugangplayArgs = {
 
 const normalize_hook = function (
   name: string,
-  userHooks: Hook | Hook[] | HookHandler<any>
+  userHooks: Hook | Hook[] | HookHandler<object>
 ): Hook[] {
   const hooks = !Array.isArray(userHooks) ? [userHooks] : userHooks;
   return hooks.map(function (userHook) {
     const hook: Partial<Hook> = {};
 
     if (typeof userHook === 'function') {
-      hook.handler = userHook as HookHandler<Record<string, unknown>>;
+      hook.handler = userHook;
     } else if (!is_object(userHook) && Object.keys(userHook).length === 0) {
       throw error('PLUGINS_HOOK_INVALID_HANDLER', [
         'no hook handler function could be found,',
