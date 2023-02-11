@@ -226,7 +226,7 @@ const plugandplay = function ({
       if (typeof userPlugin === 'function') {
         return this.register(userPlugin(args));
       } else {
-        const plugin: Partial<Plugin> = {};
+        const plugin: Partial<NormalizedPlugin> = {};
         if (
           !(
             is_object_literal(plugin) &&
@@ -237,25 +237,25 @@ const plugandplay = function ({
           throw error('PLUGINS_REGISTER_INVALID_ARGUMENT', [
             'a plugin must be an object literal or a function returning an object literal',
             'with keys such as `name`, `required` and `hooks`,',
-            `got ${JSON.stringify(plugin)} instead.`,
+            `got ${JSON.stringify(userPlugin)} instead.`,
           ]);
         }
         plugin.name = userPlugin.name;
         plugin.hooks = {};
-        if ('hooks' in plugin && is_object(plugin.hooks)) {
-          for (const name in plugin.hooks) {
-            plugin.hooks[name] = normalize_hook(name, plugin.hooks[name]);
+        if ('hooks' in userPlugin && is_object(userPlugin.hooks)) {
+          for (const name in userPlugin.hooks) {
+            plugin.hooks[name] = normalize_hook(name, userPlugin.hooks[name]);
           }
         }
         plugin.require = [];
-        if ('require' in plugin) {
-          if (typeof plugin.require === 'string') {
-            plugin.require = [plugin.require];
+        if ('require' in userPlugin && userPlugin.require) {
+          if (typeof userPlugin.require === 'string') {
+            plugin.require = [userPlugin.require];
           }
-          if (!Array.isArray(plugin.require)) {
+          if (!Array.isArray(userPlugin.require)) {
             throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({
-              name: plugin.name,
-              require: plugin.require,
+              name: userPlugin.name,
+              require: userPlugin.require,
             });
           }
         }
