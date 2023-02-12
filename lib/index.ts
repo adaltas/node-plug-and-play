@@ -383,7 +383,7 @@ const plugandplay = function ({
       });
     },
     // Call a hook against each registered plugin matching the hook name
-    call: async function ({ args = [], handler, hooks = [], name }) {
+    call: async function ({ args, handler, hooks, name }) {
       if (arguments.length !== 1) {
         throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', [
           'function `call` expect 1 object argument,',
@@ -436,7 +436,7 @@ const plugandplay = function ({
       }
     },
     // Call a hook against each registered plugin matching the hook name
-    call_sync: function ({ args = [], handler, hooks = [], name }) {
+    call_sync: function ({ args, handler, hooks, name }) {
       if (arguments.length !== 1) {
         throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', [
           'function `call` expect 1 object argument,',
