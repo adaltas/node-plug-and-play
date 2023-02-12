@@ -282,7 +282,7 @@ const plugandplay = function ({ args, chain, parent, plugins = [], } = {}) {
                 return hook;
             });
         },
-        call: function ({ args = [], handler, hooks = [], name }) {
+        call: function ({ args, handler, hooks, name }) {
             return __awaiter(this, arguments, void 0, function* () {
                 if (arguments.length !== 1) {
                     throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', [
@@ -332,7 +332,7 @@ const plugandplay = function ({ args, chain, parent, plugins = [], } = {}) {
                 }
             });
         },
-        call_sync: function ({ args = [], handler, hooks = [], name }) {
+        call_sync: function ({ args, handler, hooks, name }) {
             if (arguments.length !== 1) {
                 throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', [
                     'function `call` expect 1 object argument,',

@@ -2,12 +2,12 @@ import { is_object_literal, is_object, merge } from 'mixme';
 import toposort from 'toposort';
 import error from './error';
 
-export type HookHandler<T extends object> = (
+type HookHandler<T extends object> = (
   args: T,
-  handler?: HookHandler<object>
-) => null | void | HookHandler<object> | Promise<HookHandler<object>>;
+  handler?: HookHandler<T>
+) => null | void | HookHandler<T> | Promise<HookHandler<T>>;
 
-export interface Hook {
+export interface Hook<T extends object> {
   /**
    * List of plugin names with hooks of the same name are to be executed after, a string is coerced to an array.
    */
@@ -19,7 +19,7 @@ export interface Hook {
   /**
    * The hook handler to be executed.
    */
-  handler: HookHandler<object>;
+  handler: HookHandler<T>;
   /**
    * Name to indentify the hook.
    */
@@ -29,12 +29,12 @@ export interface Hook {
   require?: string[];
 }
 
-export interface Plugin {
+export interface Plugin<T extends object = object> {
   /**
    * List of hooks identified by hook names.
    */
   hooks: {
-    [name: string]: Hook[] | Hook | HookHandler<object>;
+    [name: string]: Hook<T>[] | Hook<T> | HookHandler<T>;
   };
   /**
    * Name of the plugin.
@@ -50,7 +50,7 @@ interface callArgs<T extends object> {
   /**
    * Argument passed to the handler function as well as all hook handlers.
    */
-  args: T | [];
+  args: T;
   /**
    * Function to decorate, receive the value associated with the `args` property.
    */
@@ -58,22 +58,18 @@ interface callArgs<T extends object> {
   /**
    * List of completary hooks from the end user.
    */
-  hooks?: Hook[];
+  hooks?: Hook<T>[];
   /**
    * Name of the hook to execute.
    */
   name: string;
 }
 
-// type syncCallArgs = Omit<callArgs, 'handler'> & {
-//   handler: SyncHookHandler;
-// };
-
-interface getArgs {
+interface getArgs<T extends object> {
   /**
    * List of complementary hooks from the end user.
    */
-  hooks?: Hook[];
+  hooks?: Hook<T>[];
   /**
    * Name of the hook to retrieve.
    */
@@ -84,45 +80,44 @@ interface getArgs {
   sort?: boolean;
 }
 
-export interface Registry {
+interface Registry<T extends object = object> {
   /**
    * Execute a hander function and its associated hooks.
    */
-  call: (args: callArgs<object>) => Promise<unknown>;
+  call: (args: callArgs<T>) => Promise<unknown>;
   /**
    * Execute a hander function and its associated hooks, synchronously.
    */
-  call_sync: (args: callArgs<object>) => unknown;
+  call_sync: (args: callArgs<T>) => unknown;
   /**
    * Retrieves registered hooks.
    */
-  get: (args: getArgs) => Hook[];
+  get: (args: getArgs<T>) => Hook<T>[];
   /**
    * Registers a plugin
    * @remarks Plugin can be provided when instantiating Plug-And-Play by passing the plugins property or they can be provided later on by calling the register function.
    */
-  register: (userPlugin: Plugin | ((args?: object) => Plugin)) => Registry;
+  register: (userPlugin: Plugin<T> | ((args?: T) => Plugin<T>)) => Registry<T>;
   /**
    * Check if a plugin is registered.
    */
   registered: (name: string) => boolean;
 }
 
-type plugangplayArgs = {
-  args?: object;
-  chain?: Registry;
-  parent?: Registry;
-  plugins?: Plugin[];
+type plugangplayArgs<T extends object> = {
+  args?: T;
+  chain?: Registry<T>;
+  parent?: Registry<T>;
+  plugins?: Plugin<T>[];
 };
 
-const normalize_hook = function (
+const normalize_hook = function <T extends object>(
   name: string,
-  userHooks: Hook | Hook[] | HookHandler<object>
-): Hook[] {
+  userHooks: Hook<T> | Hook<T>[] | HookHandler<T>
+): Hook<T>[] {
   const hooks = !Array.isArray(userHooks) ? [userHooks] : userHooks;
   return hooks.map(function (userHook) {
-    const hook: Partial<Hook> = {};
-
+    const hook: Partial<Hook<T>> = {};
     if (typeof userHook === 'function') {
       hook.handler = userHook;
     } else if (!is_object(userHook) && Object.keys(userHook).length === 0) {
@@ -140,7 +135,7 @@ const normalize_hook = function (
     if ('before' in userHook && typeof userHook.before === 'string') {
       hook.before = [userHook.before];
     }
-    return hook as Hook;
+    return hook as Hook<T>;
   });
 };
 
@@ -206,27 +201,51 @@ const errors = {
   },
 };
 
-type NormalizedPlugin = Plugin & {
+type NormalizedPlugin<T extends object = object> = Plugin<T> & {
   hooks: {
-    [name: string]: Hook[];
+    [name: string]: Hook<T>[];
   };
 };
 
-const plugandplay = function ({
+/**
+ * Initializes a plugandplay instance
+ *
+ * @remarks args type can be enforced at initialization.
+ * @example
+ *
+ * Loose typing:
+ * ```typescript
+ * plugandplay({
+ *  args: { foo: "bar" },
+ * });
+ * ```
+ *
+ * Specific typing:
+ * ```typescript
+ * plugandplay<{ bar: object; foo: string }>({
+ *  args: { bar: {hello:"world"}, foo: 'baz' },
+ * });
+ * ```
+ *
+ * Users would then be forced to use the specified type for args.
+ *
+ * @returns A new plugin registry
+ */
+const plugandplay = function <T extends object>({
   args,
   chain,
   parent,
   plugins = [],
-}: plugangplayArgs = {}): Registry {
+}: plugangplayArgs<T> = {}): Registry<T> {
   // Internal plugin store
-  const store: NormalizedPlugin[] = [];
+  const store: NormalizedPlugin<T>[] = [];
   // Public API definition
-  const registry: Registry = {
+  const registry: Registry<T> = {
     register: function (userPlugin) {
       if (typeof userPlugin === 'function') {
         return this.register(userPlugin(args));
       } else {
-        const plugin: Partial<NormalizedPlugin> = {};
+        const plugin: Partial<NormalizedPlugin<T>> = {};
         if (
           !(
             is_object_literal(plugin) &&
@@ -260,7 +279,7 @@ const plugandplay = function ({
           }
         }
 
-        store.push(plugin as NormalizedPlugin);
+        store.push(plugin as NormalizedPlugin<T>);
         return chain || this;
       }
     },
@@ -300,13 +319,13 @@ const plugandplay = function ({
                   require: plugin.require,
                 },
                 hook
-              ) as Hook;
+              ) as Hook<T>;
             });
           })
           .filter(function (hook) {
             return hook !== undefined;
           })
-          .flat() as Hook[]),
+          .flat() as Hook<T>[]),
         ...(parent
           ? parent.get({
               name: name,
@@ -318,7 +337,7 @@ const plugandplay = function ({
         return mergedHooks;
       }
       // Topological sort
-      const index: Record<string, Hook> = {};
+      const index: Record<string, Hook<T>> = {};
       for (const hook of mergedHooks) {
         if (hook && 'plugin' in hook && hook.plugin) index[hook.plugin] = hook;
       }
@@ -343,11 +362,11 @@ const plugandplay = function ({
             })
             .filter(function (hook) {
               return hook !== undefined;
-            }) as [Hook, Hook][];
+            }) as [Hook<T>, Hook<T>][];
         })
         .filter(function (hook) {
           return hook !== undefined;
-        }) as [Hook, Hook][][];
+        }) as [Hook<T>, Hook<T>][][];
       const edges_before = mergedHooks
         .map(function (hook) {
           if (!('before' in hook && Array.isArray(hook.before))) return;
@@ -368,11 +387,11 @@ const plugandplay = function ({
             })
             .filter(function (hook) {
               return hook !== undefined;
-            }) as [Hook, Hook][];
+            }) as [Hook<T>, Hook<T>][];
         })
         .filter(function (hook) {
           return hook !== undefined;
-        }) as [Hook, Hook][][];
+        }) as [Hook<T>, Hook<T>][][];
       const edges = [...edges_after, ...edges_before].flat(1);
       return toposort.array(mergedHooks, edges).map((hook) => {
         if (hook) {
