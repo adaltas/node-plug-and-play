@@ -211,7 +211,8 @@ type NormalizedPlugin<T extends object = object> = Plugin<T> & {
 /**
  * Initializes a plugandplay instance
  *
- * @remarks args type can be enforced at initialization.
+ * @typeParam T - Type of parameters expected by hook handlers.
+ *
  * @example
  *
  * Loose typing:
