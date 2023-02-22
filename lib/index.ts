@@ -1,8 +1,9 @@
+
 import { is_object_literal, is_object, merge } from 'mixme';
 import toposort from 'toposort';
-import error from './error';
+import error from './error.js';
 
-type HookHandler<T extends object> = (
+export type HookHandler<T extends object> = (
   args: T,
   handler?: HookHandler<T>
 ) => null | void | HookHandler<T> | Promise<HookHandler<T>>;
@@ -46,7 +47,7 @@ export interface Plugin<T extends object = object> {
   require?: string[];
 }
 
-interface callArgs<T extends object> {
+export interface callArgs<T extends object> {
   /**
    * Argument passed to the handler function as well as all hook handlers.
    */
@@ -88,7 +89,7 @@ interface Registry<T extends object = object> {
   /**
    * Execute a hander function and its associated hooks, synchronously.
    */
-  call_sync: (args: callArgs<T>) => unknown;
+  call_sync: (args: callArgs<T>) => any;
   /**
    * Retrieves registered hooks.
    */
@@ -482,7 +483,6 @@ const plugandplay = function <T extends object>({
         name: name,
       });
       // Call the hooks
-      let maybeHandler;
       for (const hook of hooks) {
         switch (hook.handler.length) {
           case 0:
@@ -491,8 +491,8 @@ const plugandplay = function <T extends object>({
             hook.handler.call(this, args);
             break;
           case 2:
-            maybeHandler = hook.handler.call(this, args, handler);
-            if (maybeHandler === null) {
+            handler = hook.handler.call(this, args, handler) as HookHandler<T>;
+            if (handler === null) {
               return null;
             }
             break;
@@ -503,11 +503,8 @@ const plugandplay = function <T extends object>({
             ]);
         }
       }
-      if (maybeHandler) {
-        // Call the final handler
-        return Promise.resolve(maybeHandler).then((handler) =>
-          handler.call(this, args)
-        );
+      if(handler) {
+        return handler.call(this, args)
       }
     },
   };
