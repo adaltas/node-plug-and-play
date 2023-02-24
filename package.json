@@ -34,15 +34,24 @@
     "@commitlint/config-conventional": "^16.2.1",
     "@rollup/plugin-eslint": "^8.0.1",
     "@rollup/plugin-node-resolve": "^13.1.3",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/should": "^13.0.0",
+    "@types/toposort": "^2.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.50.0",
+    "@typescript-eslint/parser": "^5.50.0",
     "coffeescript": "^2.6.1",
     "eslint": "^8.9.0",
     "eslint-plugin-coffee": "^0.1.15",
     "eslint-plugin-mocha": "^10.0.3",
+    "eslint-plugin-tsdoc": "^0.2.17",
     "husky": "^7.0.4",
     "mocha": "9.2.0",
     "rollup": "^2.67.2",
+    "rollup-plugin-dts": "^5.1.1",
     "should": "~13.2.3",
-    "standard-version": "^9.3.2"
+    "standard-version": "^9.3.2",
+    "ts-node": "^10.9.1"
   },
   "exports": {
     ".": {
@@ -67,13 +76,17 @@
   ],
   "license": "MIT",
   "main": "lib/index.js",
+  "types": "./dist/index.d.ts",
   "mocha": {
     "inline-diffs": true,
-    "loader": "./test/loaders/coffee.js",
     "recursive": true,
     "reporter": "spec",
     "require": [
       "should"
+    ],
+    "node-option": [
+      "experimental-specifier-resolution=node",
+      "loader=ts-node/esm"
     ],
     "throw-deprecation": true,
     "timeout": 40000
@@ -83,7 +96,8 @@
     "url": "git+https://github.com/adaltas/node-plug-and-play.git"
   },
   "scripts": {
-    "build": "npx rollup -c",
+    "build": "rimraf ./dist && rollup -c rollup.config.ts --configPlugin typescript",
+    "dev": "rollup -c rollup.config.ts --configPlugin typescript -w",
     "lint": "eslint 'lib/**/*.js'",
     "lint:coffee": "broken, see https://github.com/helixbass/eslint-plugin-coffee/issues/77; eslint -c .eslintrc.test.json 'test/**/*.coffee'",
     "lint:fix": "eslint --fix 'lib/**/*.js' && eslint --fix -c .eslintrc.test.json 'test/**/*.coffee'",
