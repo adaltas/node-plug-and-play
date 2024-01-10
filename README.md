@@ -22,6 +22,15 @@ Easily create hooks and let users plug their own logic across your code to make 
 
 We encourage your to read the detailed tutorial on [how to create a plugin architected with Plug and Play](https://www.adaltas.com/en/2020/08/28/node-js-plugin-architecture/) published by [Adaltas](https://www.adaltas.com).
 
+Here is the documentation:
+
+- [Introduction](./docs/1.introduction.md)
+- [Initialize a new instance](./docs/2.initialization.md)
+- [Plugins registration](./docs/3.plugins.md)
+- [Hook declaration](./docs/4.hook.md)
+- [API usage](./docs/5.api.md)
+- [Developers instructions](./docs/6.developers.md)
+
 ## Quick example
 
 Library and application authors define hooks, see [`./sample/lib.js`](https://github.com/adaltas/node-plug-and-play/blob/master/sample/lib.js):
@@ -83,129 +92,4 @@ While the original `print` function was only printing `Hello` to stdout, the int
 >>>>>>>>>>>
 Hello world
 <<<<<<<<<<<
-```
-
-## API
-
-The package exports a function to create a new instance:
-
-```
-const plugandplay = require('plug-and-play')
-
-const plugins = plugandplay()
-```
-
-It accepts an option object with the properties:
-
-* `args` ([string])   
-  Arguments to pass to the plugin when they are instantiated, only apply if the plugin is defined as a function.
-* `chain` (any)   
-  Value returned by Plug-And-Play `register` function, default to the Plug-And-Play instance.
-* `parent` (plugandplay)   
-  Parent instance of Plug-And-Play to inherit plugins from.
-* `plugins` ([plugin])   
-  List of plugins to register
-
-### Plugin object
-
-A plugin is an object literal with the properties:
-
-* `hooks` ({name: hook})   
-  List of hooks identified by hook names.
-* `name` (string)   
-  Name of the plugin.
-* `require` ([string])   
-  Names of the required plugins.
-
-Alternatively, a plugin can be defined as a function which return the same plugin object and receive the `args` property from the Plug-And-Play function.
-
-### Hook object
-
-A hook is an object literal with the properties:
-
-* `after` ([string])   
-  List of plugin names with hooks of the same name are to be executed before, a
-  string is coerced to an array.
-* `name` (string)   
-  Name to indentify the hook.
-* `before` ([string])   
-  List of plugin names with hooks of the same name are to be executed after, a string is coerced to an array.
-
-Note, when referencing plugins with `after` and `before`, the plugins do not need to exists. If they do, they are required to export a hook of the same name.
-
-### Call function
-
-The function signature is:
-
-```
-call({args = [], handler, hooks = [], name})
-```
-
-Execute a hander function and its associated hooks. The first argument is an object with the properties:
-
-* `args` (any)
-  Argument pass to the handler function as well as all hook handlers
-* `handler` (function)   
-  Function to decorate, receive the value assocaited with the `args` property.
-* `name` (string)   
-  Name of the hook to execute.
-* `hooks` ([hook])   
-  List of completary hooks from the end user.
-
-### Get function
-
-The function signature is:
-
-```
-get({name, hooks, sort})
-```
-
-The `get` function return hooks. It expects a property `option` which is a literal object with the properties:
-
-* `name` (string)   
-  Name of the hook to retrieve.
-* `hooks` ([hook])
-  List of completary hooks from the end user.
-* `sort` (boolean)   
-  Sort the hooks relatively to each other using the `after` and `before` properties.
-
-### Register function
-
-The function signature is:
-
-```
-register(plugin)
-```
-
-Plugin can be provided when instantiating Plug-And-Play by passing the `plugins` property or they can be provided later on by calling the `register` function. The function only accept one argument, the `plugin` property:
-
-* `plugin` (plugin)   
-  Plugin object.
-
-### Registed function
-
-The function signature is:
-
-```
-registered(name)
-```
-
-Check if a plugin is registered.
-
-## Roadmap
-
-Worth considering: move the `name` property of `get` and `call` into the first argument and move the other properties into a second argument named option.
-
-## Developers
-
-To automatically generate a new version:
-
-```
-yarn run release
-```
-
-There is currently no CI, copy/paste the code after release. Note, commits and tags are automatically pushed before publishing.
-
-```
-npm publish
 ```
