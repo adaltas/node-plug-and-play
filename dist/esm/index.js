@@ -124,7 +124,7 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
       if (plugin.hooks == null) {
         plugin.hooks = {};
       }
-      for (let name in plugin.hooks) {
+      for (const name in plugin.hooks) {
         plugin.hooks[name] = normalize_hook(name, plugin.hooks[name]);
       }
       if (plugin.require == null){
