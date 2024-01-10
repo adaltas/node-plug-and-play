@@ -1,13 +1,7 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var mixme = require('mixme');
 var toposort = require('toposort');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-var toposort__default = /*#__PURE__*/_interopDefaultLegacy(toposort);
 
 const PlugableError = class PlugableError extends Error {
   constructor(code, message, ...contexts) {
@@ -241,7 +235,7 @@ const plugandplay = function({args, chain, parent, plugins = []} = {}) {
         })
         .filter(function(hook){return hook !== undefined;});
       const edges = array_flatten([...edges_after, ...edges_before], 0);
-      return toposort__default["default"].array(hooks, edges);
+      return toposort.array(hooks, edges);
     },
     // Call a hook against each registered plugin matching the hook name
     call: async function({args = [], handler, hooks = [], name}) {
