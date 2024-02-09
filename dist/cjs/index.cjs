@@ -16,7 +16,7 @@ const PlugableError = class PlugableError extends Error {
       Error.captureStackTrace(this, PlugableError);
     }
     this.code = code;
-    for (const i = 0; i < contexts.length; i++) {
+    for (let i = 0; i < contexts.length; i++) {
       const context = contexts[i];
       for (const key in context) {
         if (key === 'code') {
