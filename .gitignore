@@ -3,8 +3,6 @@
 /package-lock.json
 /yarn.lock
 /yarn-error.log
-!.eslintrc.json
-!.eslintrc.test.json
 !.husky
 !.travis.yml
 !.gitignore
