@@ -1,0 +1,26 @@
+{
+  "include": [
+    "lib/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "compilerOptions": {
+    "target": "es6",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "rootDir": "lib",
+    "outDir": "dist/esm",
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "strict": true,
+    "sourceMap": true,
+    "declaration": false,
+    "lib": [
+      "ES2021",
+      "DOM"
+    ]
+  }
+}
