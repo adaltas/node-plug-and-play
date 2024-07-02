@@ -1,8 +1,9 @@
-import dts from 'rollup-plugin-dts';
 import typescript from '@rollup/plugin-typescript';
+import dts from 'rollup-plugin-dts';
 
 export default [
   {
+    external: ['mixme', 'toposort'],
     input: 'lib/index.ts',
     output: [
       {
@@ -14,7 +15,6 @@ export default [
         format: 'esm',
       },
     ],
-    external: ['mixme', 'toposort'],
     plugins: [typescript({ sourceMap: true })],
   },
   {
