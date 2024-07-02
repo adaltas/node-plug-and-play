@@ -85,7 +85,15 @@ export default tsLint.config(
           ],
         },
       ],
-      'unicorn/prevent-abbreviations': 'warn',
+      'unicorn/prevent-abbreviations': [
+        'warn',
+        {
+          replacements: {
+            params: false,
+            args: false,
+          },
+        },
+      ],
       'unicorn/catch-error-name': 'warn',
       'jsdoc/require-jsdoc': [
         'warn',
