@@ -3,46 +3,84 @@ import toposort from 'toposort';
 
 import error from './error.js';
 
+/**
+ * Represents a handler function for a hook.
+ *
+ * @typeParam T - The type of the arguments passed to the hook handler.
+ *
+ * @param args - The arguments passed to the hook handler.
+ * @param handler - The next hook handler in the chain.
+ *
+ * @returns A Promise or a value that represents the result of the hook handler.
+ */
 export type HookHandler<T> = (
   args: T,
   handler?: HookHandler<T>
 ) => null | void | HookHandler<T> | Promise<HookHandler<T>>;
 
+/**
+ * Represents a hook in the Plug-and-Play system.
+ *
+ * @typeParam T - The type of the arguments expected by the hook handlers.
+ */
 export interface Hook<T> {
   /**
-   * List of plugin names with hooks of the same name are to be executed after, a string is coerced to an array.
+   * List of plugin names with hooks of the same name that should be executed after this hook.
+   * If a string is provided, it is coerced to an array.
    */
   after?: string | string[];
+
   /**
-   * List of plugin names with hooks of the same name are to be executed before, a string is coerced to an array.
+   * List of plugin names with hooks of the same name that should be executed before this hook.
+   * If a string is provided, it is coerced to an array.
    */
   before?: string | string[];
+
   /**
    * The hook handler to be executed.
    */
   handler: HookHandler<T>;
+
   /**
    * Name to identify the hook.
    */
   name?: PropertyKey;
 
+  /**
+   * Name of the plugin that defines this hook.
+   */
   plugin?: string;
+
+  /**
+   * List of plugin names that this hook requires.
+   */
   require?: string | string[];
 }
 
+/**
+ * Represents a plugin for the Plug-and-Play system.
+ *
+ * @typeParam T - Type of parameters expected by hook handlers.
+ */
 export interface Plugin<T> {
   /**
    * List of hooks identified by hook names.
+   *
+   * Each hook can be an array of hooks, a single hook, or a handler function.
    */
   hooks: {
     [name in keyof T]: Hook<T[name]>[] | Hook<T[name]> | HookHandler<T[name]>;
   };
+
   /**
    * Name of the plugin.
    */
   name: PropertyKey;
+
   /**
    * Names of the required plugins.
+   *
+   * If a required plugin is not registered, an error will be thrown when the plugin is registered.
    */
   require?: string[];
 }
@@ -238,27 +276,34 @@ const errors = {
     ]);
   },
 };
-
+/**
+ * Represents a normalized plugin with standardized hooks.
+ *
+ * @typeParam T - The type of the arguments and return values of the hooks.
+ */
 interface NormalizedPlugin<T> {
+  /**
+   * The hooks associated with the plugin, normalized to a standardized format.
+   */
+  hooks: {
+    [name in keyof T]: Hook<T[name]>[];
+  };
+
   /**
    * Name of the plugin.
    */
   name: PropertyKey;
+
   /**
    * Names of the required plugins.
    */
   require?: string[];
-
-  hooks: {
-    [name in keyof T]: Hook<T[name]>[];
-  };
 }
 
 /**
- * Initializes a plugandplay instance
+ * A function to initialize a plugandplay instance. Creates a plugin system with support for hooks and plugin requirements.
  *
- * @typeParam T - An object representing the type of every hook arguments.
- *
+ * @typeParam T - The type of the arguments and return values of the hooks. An object representing the type of every hook arguments.
  * @example
  *
  * Loose typing:
@@ -273,8 +318,11 @@ interface NormalizedPlugin<T> {
  *   "second-hook" : { baz: object }
  * }>();
  * ```
- *
- * @returns A new plugin registry
+ * @param args - The arguments to pass to the registered plugins.
+ * @param chain - The chain of plugins to call the hooks on.
+ * @param parent - The parent plugin system to call the hooks on.
+ * @param plugins - The initial plugins to register.
+ * @returns - An object representing the plugin system.
  */
 const plugandplay = function <
   T extends Record<string, unknown> = Record<string, unknown>,
@@ -286,13 +334,22 @@ const plugandplay = function <
 }: plugangplayArguments<T> = {}): Registry<T> {
   // Internal plugin store
   const store: NormalizedPlugin<T>[] = [];
+
   // Public API definition
   const registry: Registry<T> = {
+    /**
+     * Registers a plugin with the plugin system.
+     *
+     * @param plugin - The plugin to register.
+     * @returns - The plugin system.
+     */
     register: function (plugin) {
       const normalizedPlugin: NormalizedPlugin<T> =
         typeof plugin === 'function'
           ? (plugin.apply(null, args) as NormalizedPlugin<T>)
           : (structuredClone(plugin) as NormalizedPlugin<T>);
+
+      // Validate the plugin
       if (
         !(
           is_object_literal(normalizedPlugin) &&
@@ -307,6 +364,7 @@ const plugandplay = function <
         ]);
       }
 
+      // Normalize the plugin hooks
       if (normalizedPlugin.hooks == null) {
         normalizedPlugin.hooks = {} as { [name in keyof T]: Hook<T[name]>[] };
       }
@@ -318,6 +376,7 @@ const plugandplay = function <
         );
       }
 
+      // Normalize the plugin requirements
       normalizedPlugin.require = [];
       if ('require' in plugin && plugin.require) {
         if (typeof plugin.require === 'string') {
@@ -331,10 +390,19 @@ const plugandplay = function <
         }
       }
 
+      // Add the plugin to the store
       store.push(normalizedPlugin);
       return chain || this;
+
+      // Return the plugin system
     },
 
+    /**
+     * Checks if a plugin with the given name is registered with the plugin system.
+     *
+     * @param name - The name of the plugin to check.
+     * @returns - True if the plugin is registered, false otherwise.
+     */
     registered: function (name) {
       for (const plugin of store) {
         if (plugin.name === name) {
@@ -347,8 +415,17 @@ const plugandplay = function <
       return false;
     },
 
-    // Call a hook against each registered plugin matching the hook name
+    /**
+     * Calls the hooks with the given name on all registered plugins, in the order they were registered.
+     *
+     * @param args - The arguments to pass to the hooks.
+     * @param handler - The handler to pass to the hooks.
+     * @param hooks - The hooks to call.
+     * @param name - The name of the hooks to call.
+     * @returns - A promise that resolves to the result of the final handler.
+     */
     call: async function ({ args, handler, hooks, name }) {
+      // Validate the arguments
       if (arguments.length !== 1) {
         throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', [
           'function `call` expect 1 object argument,',
@@ -366,11 +443,12 @@ const plugandplay = function <
           `got ${JSON.stringify(arguments[0])} argument.`,
         ]);
       }
-      // Retrieve the name hooks
+      // Retrieve the hooks
       hooks = this.get({
         hooks: hooks,
         name: name,
       });
+
       // Call the hooks
       let maybeHandler;
       for (const hook of hooks) {
@@ -401,8 +479,17 @@ const plugandplay = function <
       }
     },
 
-    // Call a hook against each registered plugin matching the hook name
+    /**
+     * Calls the hooks with the given name on all registered plugins, in the order they were registered.
+     *
+     * @param args - The arguments to pass to the hooks.
+     * @param handler - The handler to pass to the hooks.
+     * @param hooks - The hooks to call.
+     * @param name - The name of the hooks to call.
+     * @returns - The result of the final handler.
+     */
     call_sync: function ({ args, handler, hooks, name }) {
+      // Validate the arguments
       if (arguments.length !== 1) {
         throw error('PLUGINS_INVALID_ARGUMENTS_NUMBER', [
           'function `call` expect 1 object argument,',
@@ -420,11 +507,12 @@ const plugandplay = function <
           `got ${JSON.stringify(arguments[0])} argument.`,
         ]);
       }
-      // Retrieve the name hooks
+      // Retrieve the hooks
       hooks = this.get({
         hooks: hooks,
         name: name,
       });
+
       // Call the hooks
       let maybeHandler;
       for (const hook of hooks) {
@@ -456,6 +544,14 @@ const plugandplay = function <
       }
     },
 
+    /**
+     * Retrieves the hooks with the given name from all registered plugins, in the order they were registered.
+     *
+     * @param hooks - The hooks to retrieve.
+     * @param name - The name of the hooks to retrieve.
+     * @param sort - Whether to sort the hooks topologically.
+     * @returns - The retrieved hooks.
+     */
     get: function <K extends keyof T>({
       name,
       hooks = [],
@@ -478,6 +574,8 @@ const plugandplay = function <
                 }
               }
             }
+
+            // Normalize the plugin hooks
             return plugin.hooks[name].map(function (hook) {
               return merge(
                 {
@@ -499,9 +597,11 @@ const plugandplay = function <
             })
           : []),
       ];
+
       if (!sort) {
         return mergedHooks;
       }
+
       // Topological sort
       const index: Record<string, Hook<T[typeof name]>> = {};
       for (const hook of mergedHooks) {
@@ -572,7 +672,7 @@ const plugandplay = function <
   for (const plugin of plugins) {
     registry.register(plugin);
   }
-  // return the object
+  // return the plugin system
   return registry;
 };
 
