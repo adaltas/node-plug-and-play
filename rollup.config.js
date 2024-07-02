@@ -1,26 +1,34 @@
-import typescript from '@rollup/plugin-typescript';
-import dts from 'rollup-plugin-dts';
+import typescript from 'rollup-plugin-typescript2';
+import del from 'rollup-plugin-delete';
+import terser from '@rollup/plugin-terser';
+
+const bundle = (config) => ({
+  ...config,
+  input: 'lib/index.ts',
+});
 
 export default [
-  {
+  bundle({
     external: ['mixme', 'toposort'],
-    input: 'lib/index.ts',
     output: [
       {
         file: `dist/cjs/index.cjs`,
         format: 'cjs',
+        sourcemap: true,
       },
       {
         file: `dist/esm/index.js`,
         format: 'esm',
+        sourcemap: true,
       },
     ],
-    plugins: [typescript({ sourceMap: true })],
-  },
-  {
-    // path to your declaration files root
-    input: 'lib/index.ts',
-    output: [{ dir: 'dist', format: 'es' }],
-    plugins: [dts()],
-  },
+    plugins: [
+      del({ targets: './dist/*' }),
+      typescript({
+        tsconfig: 'tsconfig.build.json',
+        useTsconfigDeclarationDir: true,
+      }),
+      terser(),
+    ],
+  }),
 ];

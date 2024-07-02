@@ -1,14 +1,13 @@
 {
   "include": [
     "lib/**/*.ts",
-    "test/**/*.ts",
-    "rollup.config.js"
+    "test/**/*.ts"
   ],
   "compilerOptions": {
     "target": "es6",
     "allowJs": true,
     "resolveJsonModule": true,
-    "rootDir": ".",
+    "rootDir": "lib",
     "outDir": "dist/esm",
     "module": "ESNext",
     "esModuleInterop": true,
