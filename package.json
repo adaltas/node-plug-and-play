@@ -67,6 +67,8 @@
     "should": "~13.2.3",
     "standard-version": "^9.5.0",
     "ts-node": "^10.9.1",
+    "typedoc": "^0.26.3",
+    "typedoc-plugin-markdown": "^4.1.1",
     "typescript": "^5.5.2",
     "typescript-eslint": "^7.14.1"
   },
@@ -116,6 +118,9 @@
     "prepublishOnly": "git push --follow-tags origin master",
     "pretest": "npm run build",
     "test": "mocha 'test/**/*.coffee'",
+    "docs": "npm run docs:html && npm run docs:md",
+    "docs:html": "typedoc --readme none --out docs/types/html lib/index.ts",
+    "docs:md": "typedoc --plugin typedoc-plugin-markdown --readme none --out docs/types/markdown lib/index.ts",
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
     "release:patch": "standard-version --release-as patch",
