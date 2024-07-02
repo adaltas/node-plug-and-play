@@ -85,7 +85,13 @@ export interface Plugin<T> {
   require?: string[];
 }
 
-interface callArguments<T, K extends keyof T> {
+/**
+ * Type representing the parameters for the `call` and `call_sync` functions.
+ *
+ * @typeParam T - The type of the arguments for the hooks.
+ * @typeParam K - The name of the hook.
+ */
+interface CallFunctionParams<T, K extends keyof T> {
   /**
    * Argument passed to the handler function as well as all hook handlers.
    */
@@ -97,7 +103,7 @@ interface callArguments<T, K extends keyof T> {
   handler: HookHandler<T[K]>;
 
   /**
-   * List of completary hooks from the end user.
+   * List of complementary hooks from the end user.
    */
   hooks?: Hook<T[K]>[];
 
@@ -106,35 +112,60 @@ interface callArguments<T, K extends keyof T> {
    */
   name: K;
 }
-interface getArguments<T, K extends keyof T> {
+
+/**
+ * Arguments for the `get` method of the `plugandplay` function.
+ *
+ * @typeParam T - Type of the arguments of the hooks.
+ * @typeParam K - Key of the hooks.
+ */
+interface GetFunctionParams<T, K extends keyof T> {
   /**
    * List of complementary hooks from the end user.
+   * These hooks will be merged with the hooks retrieved from the registered plugins.
+   * @defaultValue
+   * The default is `[]`.
    */
   hooks?: Hook<T[K]>[];
 
   /**
    * Name of the hook to retrieve.
+   * The hooks retrieved will be those with the same name.
    */
   name: K;
 
   /**
-   * Sort the hooks relatively to each other using the after and before properties.
+   * Sort the hooks relatively to each other using the `after` and `before` properties.
+   * If `sort` is `true`, the hooks will be sorted topologically.
+   * If `sort` is `false` or not provided, the hooks will be returned in the order they were registered.
+   * @defaultValue
+   * The default is `true`.
    */
   sort?: boolean;
 }
 
 type CallFunction<T> = <K extends keyof T>(
-  args: callArguments<T, K>
+  args: CallFunctionParams<T, K>
 ) => Promise<unknown>;
 
 type CallSyncFunction<T> = <K extends keyof T>(
-  args: callArguments<T, K>
+  args: CallFunctionParams<T, K>
 ) => unknown;
 
+/**
+ * Represents a function to retrieve the hooks with the given name from all registered plugins.
+ *
+ * @typeParam T - The type of the arguments and return values of the hooks.
+ */
 type GetFunction<T> = <K extends keyof T>(
-  args: getArguments<T, K>
+  args: GetFunctionParams<T, K>
 ) => Hook<T[K]>[];
 
+/**
+ * Represents the public API of the plugin system.
+ *
+ * @typeParam T - The type of the arguments and return values of the hooks.
+ */
 export interface Registry<T> {
   /**
    * Execute a handler function and its associated hooks.
@@ -146,6 +177,7 @@ export interface Registry<T> {
    * @returns - A promise that resolves to the result of the final handler.
    */
   call: CallFunction<T>;
+
   /**
    * Execute a handler function and its associated hooks synchronously.
    *
@@ -156,6 +188,7 @@ export interface Registry<T> {
    * @returns - The result of the final handler.
    */
   call_sync: CallSyncFunction<T>;
+
   /**
    * Retrieve the hooks with the given name from all registered plugins, in the order they were registered.
    *
@@ -165,10 +198,6 @@ export interface Registry<T> {
    * @returns - The retrieved hooks.
    */
   get: GetFunction<T>;
-  /**
-   * Registers a plugin
-   * @remarks Plugin can be provided when instantiating Plug-And-Play by passing the plugins property or they can be provided later on by calling the register function.
-   */
 
   /**
    * Register a plugin with the plugin system.
@@ -182,6 +211,7 @@ export interface Registry<T> {
   register: (
     userPlugin: Plugin<T> | ((...args: unknown[]) => Plugin<T>)
   ) => Registry<T>;
+
   /**
    * Check if a plugin with the given name is registered with the plugin system.
    *
@@ -191,10 +221,34 @@ export interface Registry<T> {
   registered: (name: PropertyKey) => boolean;
 }
 
-interface plugangplayArguments<T> {
+/**
+ * Arguments for the plugandplay function.
+ *
+ * @typeParam T - The type of the arguments and return values of the hooks.
+ */
+interface plugangplayParams<T> {
+  /**
+   * Arguments to pass to the registered plugins.
+   * @defaultValue
+   * The default is `[]`.
+   */
   args?: unknown[];
+
+  /**
+   * The chain of plugins to call the hooks on.
+   */
   chain?: Registry<T>;
+
+  /**
+   * The parent plugin system to call the hooks on.
+   */
   parent?: Registry<T>;
+
+  /**
+   * The initial plugins to register.
+   * @defaultValue
+   * The default is `[]`.
+   */
   plugins?: Plugin<T>[];
 }
 
@@ -361,7 +415,7 @@ const plugandplay = function <
   chain,
   parent,
   plugins = [],
-}: plugangplayArguments<T> = {}): Registry<T> {
+}: plugangplayParams<T> = {}): Registry<T> {
   // Internal plugin store
   const store: NormalizedPlugin<T>[] = [];
 
@@ -583,7 +637,7 @@ const plugandplay = function <
       name,
       hooks = [],
       sort = true,
-    }: getArguments<T, K>) {
+    }: GetFunctionParams<T, K>) {
       const mergedHooks = [
         ...normalize_hook<T, K>(name, hooks),
         ...store
