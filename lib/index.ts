@@ -135,28 +135,58 @@ type GetFunction<T> = <K extends keyof T>(
   args: getArguments<T, K>
 ) => Hook<T[K]>[];
 
-interface Registry<T> {
+export interface Registry<T> {
   /**
-   * Execute a hander function and its associated hooks.
+   * Execute a handler function and its associated hooks.
+   *
+   * @param args - The arguments to pass to the hooks.
+   * @param handler - The handler to pass to the hooks.
+   * @param hooks - The hooks to call.
+   * @param name - The name of the hooks to call.
+   * @returns - A promise that resolves to the result of the final handler.
    */
   call: CallFunction<T>;
   /**
-   * Execute a hander function and its associated hooks, synchronously.
+   * Execute a handler function and its associated hooks synchronously.
+   *
+   * @param args - The arguments to pass to the hooks.
+   * @param handler - The handler to pass to the hooks.
+   * @param hooks - The hooks to call.
+   * @param name - The name of the hooks to call.
+   * @returns - The result of the final handler.
    */
   call_sync: CallSyncFunction<T>;
   /**
-   * Retrieves registered hooks.
+   * Retrieve the hooks with the given name from all registered plugins, in the order they were registered.
+   *
+   * @param hooks - The hooks to retrieve.
+   * @param name - The name of the hooks to retrieve.
+   * @param sort - Whether to sort the hooks topologically.
+   * @returns - The retrieved hooks.
    */
   get: GetFunction<T>;
   /**
    * Registers a plugin
    * @remarks Plugin can be provided when instantiating Plug-And-Play by passing the plugins property or they can be provided later on by calling the register function.
    */
+
+  /**
+   * Register a plugin with the plugin system.
+   *
+   * @param userPlugin - The plugin to register.
+   * @returns - The plugin system.
+   *
+   * @remarks Plugin can be provided when instantiating Plug-And-Play by passing the plugins property or they can be provided later on by calling the register function.
+   *
+   */
   register: (
     userPlugin: Plugin<T> | ((...args: unknown[]) => Plugin<T>)
   ) => Registry<T>;
   /**
-   * Check if a plugin is registered.
+   * Check if a plugin with the given name is registered with the plugin system.
+   *
+   * @param name - The name of the plugin to check.
+   * @returns - True if the plugin is registered, false otherwise.
    */
   registered: (name: PropertyKey) => boolean;
 }
