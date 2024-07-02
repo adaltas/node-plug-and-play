@@ -32,8 +32,8 @@ const PlugableError = class PlugableError extends Error {
         this[key] = Buffer.isBuffer(value)
           ? value.toString()
           : value === null
-          ? value
-          : JSON.parse(JSON.stringify(value));
+            ? value
+            : JSON.parse(JSON.stringify(value));
       }
     }
   }

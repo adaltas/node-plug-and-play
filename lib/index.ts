@@ -346,7 +346,7 @@ const plugandplay = function <
     register: function (plugin) {
       const normalizedPlugin: NormalizedPlugin<T> =
         typeof plugin === 'function'
-          ? (plugin.apply(null, args) as NormalizedPlugin<T>)
+          ? (plugin(...args) as NormalizedPlugin<T>)
           : (structuredClone(plugin) as NormalizedPlugin<T>);
 
       // Validate the plugin
@@ -392,9 +392,9 @@ const plugandplay = function <
 
       // Add the plugin to the store
       store.push(normalizedPlugin);
-      return chain || this;
 
       // Return the plugin system
+      return chain ?? this;
     },
 
     /**
@@ -409,10 +409,7 @@ const plugandplay = function <
           return true;
         }
       }
-      if (parent != undefined && parent.registered(name)) {
-        return true;
-      }
-      return false;
+      return !!parent?.registered(name);
     },
 
     /**
@@ -603,7 +600,7 @@ const plugandplay = function <
       }
 
       // Topological sort
-      const index: Record<string, Hook<T[typeof name]>> = {};
+      const index: Record<string, Hook<T[K]>> = {};
       for (const hook of mergedHooks) {
         if (hook && 'plugin' in hook && hook.plugin) index[hook.plugin] = hook;
       }
@@ -628,7 +625,7 @@ const plugandplay = function <
             })
             .filter(function (hook) {
               return hook !== undefined;
-            }) as [Hook<T[typeof name]>, Hook<T[typeof name]>][];
+            }) as [Hook<T[K]>, Hook<T[K]>][];
         })
         .filter(function (hook) {
           return hook !== undefined;
@@ -653,7 +650,7 @@ const plugandplay = function <
             })
             .filter(function (hook) {
               return hook !== undefined;
-            }) as [Hook<T[typeof name]>, Hook<T[typeof name]>][];
+            }) as [Hook<T[K]>, Hook<T[K]>][];
         })
         .filter(function (hook) {
           return hook !== undefined;
