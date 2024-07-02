@@ -1,5 +1,9 @@
 {
-  "include": ["lib/**/*.ts", "rollup.config.ts"],
+  "include": [
+    "lib/**/*.ts",
+    "test/**/*.ts",
+    "rollup.config.js"
+  ],
   "compilerOptions": {
     "target": "es6",
     "allowJs": true,
@@ -10,11 +14,14 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "removeComments": true,
     "strict": true,
     "sourceMap": true,
     "declaration": false,
-    "lib": ["ES2021", "DOM"]
+    "lib": [
+      "ES2021",
+      "DOM"
+    ]
   }
 }
