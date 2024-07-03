@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash-es/cloneDeep';
 import { is_object, is_object_literal, merge } from 'mixme';
 import toposort from 'toposort';
 
@@ -428,10 +429,9 @@ const plugandplay = function <
      * @returns - The plugin system.
      */
     register: function (plugin) {
-      const normalizedPlugin: NormalizedPlugin<T> =
-        typeof plugin === 'function'
-          ? (plugin(...args) as NormalizedPlugin<T>)
-          : (structuredClone(plugin) as NormalizedPlugin<T>);
+      const normalizedPlugin = (
+        typeof plugin === 'function' ? plugin(...args) : cloneDeep(plugin)
+      ) as NormalizedPlugin<T>;
 
       // Validate the plugin
       if (
