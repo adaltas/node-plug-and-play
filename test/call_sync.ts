@@ -1,25 +1,35 @@
 // @ts-nocheck
-import 'should';
-import { plugandplay } from '../lib/index.ts';
+import { plugandplay } from '../lib/index';
 
-describe('plugandplay.call_sync', () => {
-  describe('api', () => {
-    it('no aguments', async () => {
+/*
+ * TODO: uncomment the code below, on line 18, and
+ * remove the `@ts-nocheck` comment at the top of the file to get type hinting for hooks
+ */
+// type Hooks = {
+//   'my:hook': {
+//     test: number;
+//   };
+// };
+
+describe('plugandplay.call_sync', function () {
+  describe('api', function () {
+    it('no arguments', async function () {
       let count = 0;
+      // const plugins = plugandplay<Hooks>();
       const plugins = plugandplay();
       plugins.register({
-        name: 'my_plugin',
         hooks: {
-          'my:hook': (args) => {
+          'my:hook': function (args) {
             count++;
             return;
           },
         },
+        name: 'my_plugin',
       });
       await plugins.call_sync({
-        name: 'my:hook',
+        args: { test: 2 },
         handler: () => {},
-        args: {},
+        name: 'my:hook',
       });
       count.should.eql(1);
     });
@@ -32,7 +42,6 @@ describe('plugandplay.call_sync', () => {
       }
       const plugins = plugandplay();
       plugins.register({
-        name: 'my_plugin',
         hooks: {
           'my:hook': function (test) {
             // Alter `test` with `a_key`
@@ -40,12 +49,13 @@ describe('plugandplay.call_sync', () => {
             return;
           },
         },
+        name: 'my_plugin',
       });
       const test = {} as Test;
       plugins.call_sync({
-        name: 'my:hook',
         args: test,
         handler: function () {},
+        name: 'my:hook',
       });
       test.a_key.should.eql('a value');
     });
@@ -56,19 +66,19 @@ describe('plugandplay.call_sync', () => {
       }
       const plugins = plugandplay();
       plugins.register({
-        name: 'my_plugin',
         hooks: {
           'my:hook': function (test, handler) {
             test.a_key = 'a value';
             return handler;
           },
         },
+        name: 'my_plugin',
       });
       const test = {} as Test;
       plugins.call_sync({
-        name: 'my:hook',
         args: test,
         handler: function () {},
+        name: 'my:hook',
       });
       test.a_key.should.eql('a value');
     });
@@ -78,49 +88,48 @@ describe('plugandplay.call_sync', () => {
     it('when `null` is returned, sync mode', function () {
       const plugins = plugandplay();
       plugins.register({
-        name: 'my_plugin_1',
         hooks: {
           'my:hook': function (ar, handler) {
             ar.push('hook 1');
             return handler;
           },
         },
+        name: 'my_plugin_1',
       });
       plugins.register({
-        name: 'my_plugin_2',
         hooks: {
           'my:hook': function (ar, handler) {
-            // eslint-disable-line
             ar.push('hook 2');
             return null;
           },
         },
+        name: 'my_plugin_2',
       });
       plugins.register({
-        name: 'my_plugin_3',
         hooks: {
           'my:hook': function (ar, handler) {
             ar.push('hook 3');
             return handler;
           },
         },
+        name: 'my_plugin_3',
       });
       plugins.register({
-        name: 'my_plugin_4',
         hooks: {
           'my:hook': function (ar, handler) {
             ar.push('hook 4');
             return handler;
           },
         },
+        name: 'my_plugin_4',
       });
       const ar: string[] = [];
       plugins.call_sync({
-        name: 'my:hook',
         args: ar,
         handler: function (ar) {
           return ar.push('origin');
         },
+        name: 'my:hook',
       });
       ar.should.eql(['hook 1', 'hook 2']);
     });
@@ -130,35 +139,35 @@ describe('plugandplay.call_sync', () => {
     it('sync', function () {
       const plugins = plugandplay();
       plugins.register({
-        name: 'my_plugin_1',
         hooks: {
           'my:hook': function (test, handler) {
             return function () {
-              let res = handler.apply(null, arguments);
+              const res = Reflect.apply(handler, null, arguments);
               res.push('alter_1');
               return res;
             };
           },
         },
+        name: 'my_plugin_1',
       });
       plugins.register({
-        name: 'my_plugin_2',
         hooks: {
           'my:hook': function (test, handler) {
             return function () {
-              let res = handler.apply(null, arguments);
+              const res = Reflect.apply(handler, null, arguments);
               res.push('alter_2');
               return res;
             };
           },
         },
+        name: 'my_plugin_2',
       });
       const result = plugins.call_sync({
-        name: 'my:hook',
         args: ['origin'],
         handler: function (args: string[]): string[] {
           return args;
         },
+        name: 'my:hook',
       });
       result.should.eql(['origin', 'alter_1', 'alter_2']);
     });
