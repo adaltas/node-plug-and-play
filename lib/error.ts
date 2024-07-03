@@ -1,11 +1,17 @@
 const PlugableError = class PlugableError extends Error {
-  constructor(code, message, ...contexts) {
+  public code: string;
+  [index: string]: unknown; // required to allow adding class props dynamically
+  constructor(
+    code: string,
+    message: string | (string | undefined)[],
+    ...contexts: Record<string, object>[]
+  ) {
     if (Array.isArray(message)) {
       message = message
         .filter(function (line) {
           return !!line;
         })
-        .join(" ");
+        .join(' ');
     }
     message = `${code}: ${message}`;
     super(message);
@@ -16,7 +22,7 @@ const PlugableError = class PlugableError extends Error {
     for (let i = 0; i < contexts.length; i++) {
       const context = contexts[i];
       for (const key in context) {
-        if (key === "code") {
+        if (key === 'code') {
           continue;
         }
         const value = context[key];
@@ -32,6 +38,8 @@ const PlugableError = class PlugableError extends Error {
     }
   }
 };
-export default (function () {
-  return new PlugableError(...arguments);
+export default (function (
+  ...args: ConstructorParameters<typeof PlugableError>
+) {
+  return new PlugableError(...args);
 });
