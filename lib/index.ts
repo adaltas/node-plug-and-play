@@ -70,7 +70,7 @@ export interface Plugin<T> {
    * Each hook can be an array of hooks, a single hook, or a handler function.
    */
   hooks: {
-    [name in keyof T]: Hook<T[name]>[] | Hook<T[name]> | HookHandler<T[name]>;
+    [name in keyof T]?: Hook<T[name]>[] | Hook<T[name]> | HookHandler<T[name]>;
   };
 
   /**
@@ -83,14 +83,14 @@ export interface Plugin<T> {
    *
    * If a required plugin is not registered, an error will be thrown when the plugin is registered.
    */
-  require?: string[];
+  require?: string | string[];
 }
 
 /**
  * Type representing the parameters for the `call` and `call_sync` functions.
  *
- * @typeParam T - The type of the arguments for the hooks.
- * @typeParam K - The name of the hook.
+ * @typeParam T - The type of the plugin hooks.
+ * @typeParam K - The key of the hook in the plugin hooks.
  */
 interface CallFunctionParams<T, K extends keyof T> {
   /**
@@ -145,10 +145,20 @@ interface GetFunctionParams<T, K extends keyof T> {
   sort?: boolean;
 }
 
+/**
+ * Type representing a function that calls the hooks with the given name on all registered plugins.
+ *
+ * @typeParam T - The type of the plugin hooks.
+ */
 type CallFunction<T> = <K extends keyof T>(
   args: CallFunctionParams<T, K>
 ) => Promise<unknown>;
 
+/**
+ * Type representing a function that calls the hooks with the given name on all registered plugins synchronously.
+ *
+ * @typeParam T - The type of the plugin hooks.
+ */
 type CallSyncFunction<T> = <K extends keyof T>(
   args: CallFunctionParams<T, K>
 ) => unknown;
@@ -160,7 +170,7 @@ type CallSyncFunction<T> = <K extends keyof T>(
  */
 type GetFunction<T> = <K extends keyof T>(
   args: GetFunctionParams<T, K>
-) => Hook<T[K]>[];
+) => NormalizedHook<T, K>[];
 
 /**
  * Represents the public API of the plugin system.
@@ -252,6 +262,57 @@ interface plugangplayParams<T> {
    */
   plugins?: Plugin<T>[];
 }
+/**
+ * Type definition for a function that normalizes a hook definition.
+ *
+ * @typeParam T - Type of parameters expected by hook handlers.
+ * @typeParam K - Type of the key of the hook in the record.
+ * @param name - Name of the hook.
+ * @param hook - User-defined hook definition.
+ * @returns An array of standardized hook definitions.
+ */
+type NormalizeHookFunction = <T, K extends keyof T>(
+  name: K,
+  hook: Hook<T[K]> | Hook<T[K]>[] | HookHandler<T[K]>
+) => NormalizedHook<T, K>[];
+
+/**
+ * Represents a normalized hook with standardized format.
+ *
+ * @typeParam T - The type of the arguments and return values of the hooks.
+ * @typeParam K - The type of the key of the hook in the record.
+ */
+interface NormalizedHook<T, K extends keyof T> {
+  /**
+   * An array of plugin names that this hook should be executed after.
+   */
+  after?: string[];
+
+  /**
+   * An array of plugin names that this hook should be executed before.
+   */
+  before?: string[];
+
+  /**
+   * The handler function of the hook.
+   */
+  handler: HookHandler<T[K]>;
+
+  /**
+   * The name of the hook.
+   */
+  name: K;
+
+  /**
+   * The name of the plugin that defines this hook.
+   */
+  plugin?: string;
+
+  /**
+   * An array of plugin names that this plugin requires.
+   */
+  require?: string | string[];
+}
 
 /**
  * Normalize a hook definition to a standardized format.
@@ -263,34 +324,38 @@ interface plugangplayParams<T> {
  *
  * @returns An array of standardized hook definitions.
  */
-const normalize_hook = function <T, K extends keyof T>(
+const normalize_hook: NormalizeHookFunction = function <T, K extends keyof T>(
   name: K,
   hook: Hook<T[K]> | Hook<T[K]>[] | HookHandler<T[K]>
-): Hook<T[K]>[] {
+) {
   const hookArray = Array.isArray(hook) ? hook : [hook];
 
   return hookArray.map(function (hook) {
-    let normalizedHook = structuredClone(hook);
+    const normalizedHook = {
+      name: name,
+    } as NormalizedHook<T, K>;
 
-    if (typeof normalizedHook === 'function') {
-      normalizedHook = {
-        handler: normalizedHook,
-      };
-    } else if (!is_object(normalizedHook)) {
+    if (typeof hook === 'function') {
+      normalizedHook.handler = hook;
+    } else if (is_object(hook)) {
+      normalizedHook.handler = hook.handler;
+    } else {
       throw error('PLUGINS_HOOK_INVALID_HANDLER', [
         'no hook handler function could be found,',
         'a hook must be defined as a function',
         'or as an object with an handler property,',
-        `got ${JSON.stringify(normalizedHook)} instead.`,
+        `got ${JSON.stringify(hook)} instead.`,
       ]);
     }
 
-    normalizedHook.name = name;
+    'require' in hook && (normalizedHook.require = hook.require);
+    'plugin' in hook && (normalizedHook.plugin = hook.plugin);
 
     normalizedHook.after =
       'after' in normalizedHook && typeof normalizedHook.after === 'string'
         ? [normalizedHook.after]
         : normalizedHook?.after;
+
     normalizedHook.before =
       'before' in normalizedHook && typeof normalizedHook.before === 'string'
         ? [normalizedHook.before]
@@ -361,6 +426,7 @@ const errors = {
     ]);
   },
 };
+
 /**
  * Represents a normalized plugin with standardized hooks.
  *
@@ -371,17 +437,12 @@ interface NormalizedPlugin<T> {
    * The hooks associated with the plugin, normalized to a standardized format.
    */
   hooks: {
-    [name in keyof T]: Hook<T[name]>[];
-  };
+    [name in keyof T]: NormalizedHook<T, name>[];
 
-  /**
-   * Name of the plugin.
-   */
+    // NormalizedHook<T, name>
+  };
   name: PropertyKey;
 
-  /**
-   * Names of the required plugins.
-   */
   require?: string[];
 }
 
@@ -450,28 +511,28 @@ const plugandplay = function <
 
       // Normalize the plugin hooks
       if (normalizedPlugin.hooks == null) {
-        normalizedPlugin.hooks = {} as { [name in keyof T]: Hook<T[name]>[] };
+        normalizedPlugin.hooks = {} as NormalizedPlugin<T>['hooks'];
       }
 
       for (const name in normalizedPlugin.hooks) {
-        normalizedPlugin.hooks[name] = normalize_hook<T, typeof name>(
+        const te = normalizedPlugin.hooks[name];
+        normalizedPlugin.hooks[name] = normalize_hook(
           name,
           normalizedPlugin.hooks[name]
         );
       }
 
       // Normalize the plugin requirements
-      normalizedPlugin.require = [];
-      if ('require' in plugin && plugin.require) {
-        if (typeof plugin.require === 'string') {
-          normalizedPlugin.require = [plugin.require];
-        }
-        if (!Array.isArray(plugin.require)) {
-          throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({
-            name: plugin.name,
-            require: plugin.require,
-          });
-        }
+      if (normalizedPlugin.require == null) {
+        normalizedPlugin.require = [];
+      } else if (typeof normalizedPlugin.require === 'string') {
+        normalizedPlugin.require = [normalizedPlugin.require];
+      }
+      if (!Array.isArray(normalizedPlugin.require)) {
+        throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({
+          name: normalizedPlugin.name,
+          require: normalizedPlugin.require,
+        });
       }
 
       // Add the plugin to the store
@@ -639,7 +700,7 @@ const plugandplay = function <
       sort = true,
     }: GetFunctionParams<T, K>) {
       const mergedHooks = [
-        ...normalize_hook<T, K>(name, hooks),
+        ...normalize_hook(name, hooks),
         ...store
           .map(function (plugin) {
             // Only filter plugins with the requested hook
@@ -664,7 +725,7 @@ const plugandplay = function <
                   require: plugin.require,
                 },
                 hook
-              ) as Hook<T[K]>;
+              ) as NormalizedHook<T, K>;
             });
           })
           .filter(function (hook) {
@@ -684,7 +745,7 @@ const plugandplay = function <
       }
 
       // Topological sort
-      const index: Record<string, Hook<T[K]>> = {};
+      const index: Record<string, NormalizedHook<T, K>> = {};
       for (const hook of mergedHooks) {
         if (hook && 'plugin' in hook && hook.plugin) index[hook.plugin] = hook;
       }
@@ -709,7 +770,7 @@ const plugandplay = function <
             })
             .filter(function (hook) {
               return hook !== undefined;
-            }) as [Hook<T[K]>, Hook<T[K]>][];
+            }) as [NormalizedHook<T, K>, NormalizedHook<T, K>][];
         })
         .filter(function (hook) {
           return hook !== undefined;
@@ -734,7 +795,7 @@ const plugandplay = function <
             })
             .filter(function (hook) {
               return hook !== undefined;
-            }) as [Hook<T[K]>, Hook<T[K]>][];
+            }) as [NormalizedHook<T, K>, NormalizedHook<T, K>][];
         })
         .filter(function (hook) {
           return hook !== undefined;
