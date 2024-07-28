@@ -5,25 +5,6 @@
   "bugs": {
     "url": "https://github.com/adaltas/node-plug-and-play/issues"
   },
-  "coffeelintConfig": {
-    "indentation": {
-      "level": "error",
-      "value": 2
-    },
-    "line_endings": {
-      "level": "error",
-      "value": "unix"
-    },
-    "max_line_length": {
-      "level": "ignore"
-    },
-    "no_backticks": {
-      "level": "ignore"
-    },
-    "no_nested_string_interpolation": {
-      "level": "ignore"
-    }
-  },
   "dependencies": {
     "mixme": "^1.1.0",
     "toposort": "^2.0.2"
@@ -34,7 +15,6 @@
     "@commitlint/config-conventional": "^19.2.2",
     "@rollup/plugin-eslint": "^9.0.5",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "coffeescript": "^2.7.0",
     "eslint": "^9.8.0",
     "eslint-plugin-coffee": "^0.1.15",
     "eslint-plugin-mocha": "^10.4.3",
@@ -69,7 +49,6 @@
   "main": "lib/index.js",
   "mocha": {
     "inline-diffs": true,
-    "loader": "./test/loaders/coffee.js",
     "recursive": true,
     "reporter": "spec",
     "require": [
@@ -89,7 +68,7 @@
     "prepare": "husky install",
     "prepublishOnly": "git push --follow-tags origin master",
     "pretest": "npm run build",
-    "test": "mocha 'test/**/*.coffee'",
+    "test": "mocha 'test/**/*.js'",
     "release": "standard-version",
     "release:minor": "standard-version --release-as minor",
     "release:patch": "standard-version --release-as patch",
