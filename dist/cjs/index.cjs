@@ -40,22 +40,6 @@ var error = (function () {
   return new PlugableError(...arguments);
 });
 
-const array_flatten = function (items, depth = -1) {
-  const result = [];
-  for (const item of items) {
-    if (Array.isArray(item)) {
-      if (depth === 0) {
-        result.push(...item);
-      } else {
-        result.push(...array_flatten(item, depth - 1));
-      }
-    } else {
-      result.push(item);
-    }
-  }
-  return result;
-};
-
 const normalize_hook = function (name, hook) {
   if (!Array.isArray(hook)) {
     hook = [hook];
@@ -171,34 +155,31 @@ const plugandplay = function ({ args, chain, parent, plugins = [] } = {}) {
         // Merge hooks provided by the user
         ...normalize_hook(name, hooks),
         // With hooks present in the store
-        ...array_flatten(
-          store
-            .map(function (plugin) {
-              // Only filter plugins with the requested hook
-              if (!plugin.hooks[name]) return;
-              // Validate plugin requirements
-              for (const require of plugin.require) {
-                if (!registry.registered(require)) {
-                  throw errors.REQUIRED_PLUGIN({
-                    plugin: plugin.name,
-                    require: require,
-                  });
-                }
+        ...store
+          .map(function (plugin) {
+            // Only filter plugins with the requested hook
+            if (!plugin.hooks[name]) return;
+            // Validate plugin requirements
+            for (const require of plugin.require) {
+              if (!registry.registered(require)) {
+                throw errors.REQUIRED_PLUGIN({
+                  plugin: plugin.name,
+                  require: require,
+                });
               }
-              return plugin.hooks[name].map(function (hook) {
-                return mixme.merge(
-                  {
-                    plugin: plugin.name,
-                    require: plugin.require,
-                  },
-                  hook,
-                );
-              });
-            })
-            .filter(function (hook) {
-              return hook !== undefined;
-            }),
-        ),
+            }
+            return plugin.hooks[name].map(function (hook) {
+              return mixme.merge(
+                {
+                  plugin: plugin.name,
+                  require: plugin.require,
+                },
+                hook,
+              );
+            });
+          })
+          .filter(Boolean)
+          .flat(1),
         ...(parent ? parent.get({ name: name, sort: false }) : []),
       ];
       if (!sort) {
@@ -228,13 +209,9 @@ const plugandplay = function ({ args, chain, parent, plugins = [] } = {}) {
               }
               return [index[after], hook];
             })
-            .filter(function (hook) {
-              return hook !== undefined;
-            });
+            .filter(Boolean);
         })
-        .filter(function (hook) {
-          return hook !== undefined;
-        });
+        .filter(Boolean);
       const edges_before = hooks
         .map(function (hook) {
           if (!hook.before) return;
@@ -253,14 +230,10 @@ const plugandplay = function ({ args, chain, parent, plugins = [] } = {}) {
               }
               return [hook, index[before]];
             })
-            .filter(function (hook) {
-              return hook !== undefined;
-            });
+            .filter(Boolean);
         })
-        .filter(function (hook) {
-          return hook !== undefined;
-        });
-      const edges = array_flatten([...edges_after, ...edges_before], 0);
+        .filter(Boolean);
+      const edges = [...edges_after, ...edges_before].flat(1);
       return toposort.array(hooks, edges);
     },
     // Call a hook against each registered plugin matching the hook name
