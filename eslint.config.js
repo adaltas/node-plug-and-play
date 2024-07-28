@@ -1,18 +1,16 @@
-export default {
-  "languageOptions": {
-    "ecmaVersion": 2018,
-    "sourceType": "module"
+import globals from "globals";
+import js from "@eslint/js";
+import mocha from "eslint-plugin-mocha";
+import prettier from "eslint-plugin-prettier/recommended";
+
+export default [
+  {
+    ignores: ["dist/**"],
   },
-  "rules": {
-    "semi": 2,
-    "indent": [
-      "error",
-      2,
-      {
-        "SwitchCase": 1,
-        "flatTernaryExpressions": true,
-        "offsetTernaryExpressions": true
-      }
-    ]
-  }
-}
+  {
+    languageOptions: { globals: { ...globals.node } },
+  },
+  js.configs.recommended,
+  mocha.configs.flat.recommended,
+  prettier,
+];

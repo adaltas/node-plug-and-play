@@ -1,19 +1,18 @@
-
-import {plugins, print} from './lib.js';
+import { plugins, print } from "./lib.js";
 
 plugins.register({
   hooks: {
-    'hooks:print': ({data}, handler) => {
+    "hooks:print": ({ data }, handler) => {
       // Alter the argument
-      data.message = 'Hello World'
+      data.message = "Hello World";
       // Print a message before the library code
-      console.log('>>>>>>>>>>>')
+      console.log(">>>>>>>>>>>");
       // Call the original handler
-      const result = handler.call(null, {data: data})
+      const result = handler.call(null, { data: data });
       // Print a message after the library code
-      console.log('<<<<<<<<<<<')
-      return result
-    }
-  }
-})
-print()
+      console.log("<<<<<<<<<<<");
+      return result;
+    },
+  },
+});
+print();

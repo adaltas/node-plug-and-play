@@ -6,9 +6,11 @@ var toposort = require('toposort');
 const PlugableError = class PlugableError extends Error {
   constructor(code, message, ...contexts) {
     if (Array.isArray(message)) {
-      message = message.filter(function (line) {
-        return !!line;
-      }).join(' ');
+      message = message
+        .filter(function (line) {
+          return !!line;
+        })
+        .join(" ");
     }
     message = `${code}: ${message}`;
     super(message);
@@ -19,14 +21,17 @@ const PlugableError = class PlugableError extends Error {
     for (let i = 0; i < contexts.length; i++) {
       const context = contexts[i];
       for (const key in context) {
-        if (key === 'code') {
+        if (key === "code") {
           continue;
         }
         const value = context[key];
         if (value === void 0) {
           continue;
         }
-        this[key] = Buffer.isBuffer(value) ? value.toString() : value === null ? value : JSON.parse(JSON.stringify(value));
+        this[key] =
+          Buffer.isBuffer(value) ? value.toString()
+          : value === null ? value
+          : JSON.parse(JSON.stringify(value));
       }
     }
   }
@@ -41,12 +46,10 @@ const array_flatten = function (items, depth = -1) {
     if (Array.isArray(item)) {
       if (depth === 0) {
         result.push(...item);
-      }
-      else {
+      } else {
         result.push(...array_flatten(item, depth - 1));
       }
-    }
-    else {
+    } else {
       result.push(item);
     }
   }
@@ -188,13 +191,13 @@ const plugandplay = function ({ args, chain, parent, plugins = [] } = {}) {
                     plugin: plugin.name,
                     require: plugin.require,
                   },
-                  hook
+                  hook,
                 );
               });
             })
             .filter(function (hook) {
               return hook !== undefined;
-            })
+            }),
         ),
         ...(parent ? parent.get({ name: name, sort: false }) : []),
       ];

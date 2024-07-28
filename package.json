@@ -13,13 +13,17 @@
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
+    "@eslint/js": "^9.8.0",
     "@rollup/plugin-eslint": "^9.0.5",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "dedent": "^1.5.3",
     "eslint": "^9.8.0",
-    "eslint-plugin-coffee": "^0.1.15",
     "eslint-plugin-mocha": "^10.4.3",
+    "eslint-plugin-prettier": "^5.2.1",
     "husky": "^9.1.3",
+    "lint-staged": "^15.2.7",
     "mocha": "10.7.0",
+    "prettier": "^3.3.3",
     "rollup": "^4.19.1",
     "should": "~13.2.3",
     "standard-version": "^9.5.0"
@@ -46,6 +50,10 @@
     "flexibility"
   ],
   "license": "MIT",
+  "lint-staged": {
+    "*.js": "npm run lint:fix",
+    "*.md": "prettier -w"
+  },
   "main": "lib/index.js",
   "mocha": {
     "inline-diffs": true,
@@ -63,8 +71,9 @@
   },
   "scripts": {
     "build": "npx rollup -c",
-    "lint": "eslint 'lib/**/*.js'",
-    "lint:fix": "eslint --fix 'lib/**/*.js'",
+    "lint:check": "eslint",
+    "lint:fix": "eslint --fix",
+    "lint:staged": "npx lint-staged",
     "prepare": "husky install",
     "prepublishOnly": "git push --follow-tags origin master",
     "pretest": "npm run build",
