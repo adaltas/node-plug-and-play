@@ -4,7 +4,7 @@
 /yarn.lock
 /yarn-error.log
 !.husky
-!.travis.yml
+!.prettierrc.yml
 !.gitignore
 !.gitattributes
 !.npmignore
