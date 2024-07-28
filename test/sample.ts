@@ -1,7 +1,7 @@
 import { execFile as _execFile } from "node:child_process";
-import util from "node:util";
+import { promisify } from "node:util";
 import dedent from "dedent";
-const execFile = util.promisify(_execFile);
+const execFile = promisify(_execFile);
 
 describe("plugandplay.sample", function () {
   it("validate", async function () {

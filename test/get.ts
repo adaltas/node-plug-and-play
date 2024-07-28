@@ -1,4 +1,4 @@
-import { plugandplay } from "../lib/index.js";
+import { plugandplay } from "../src/index.js";
 
 describe("plugandplay.get", function () {
   describe("option `name`", function () {
@@ -8,7 +8,7 @@ describe("plugandplay.get", function () {
         .register({ hooks: { "my:hook": () => 2 } })
         .register({ hooks: { "another:hook": () => 2 } })
         .get({ name: "my:hook" })
-        .map((hook) => hook.handler.call())
+        .map((hook) => hook.handler(undefined))
         .should.eql([1, 2]);
     });
 

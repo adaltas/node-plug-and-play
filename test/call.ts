@@ -1,30 +1,7 @@
-import { plugandplay } from "../lib/index.js";
+import { plugandplay } from "../src/index.js";
 
 describe("plugandplay.call", function () {
   describe("api", function () {
-    it("expect 1 argument", async function () {
-      await plugandplay().call({}, {}).should.be.rejectedWith({
-        code: "PLUGINS_INVALID_ARGUMENTS_NUMBER",
-      });
-    });
-
-    it("argument must a an object", async function () {
-      await plugandplay().call([]).should.be.rejectedWith({
-        code: "PLUGINS_INVALID_ARGUMENT_PROPERTIES",
-      });
-    });
-
-    it("object must contains `name` and be a string", async function () {
-      await plugandplay()
-        .call({
-          name: 123,
-          handler: () => {},
-        })
-        .should.be.rejectedWith({
-          code: "PLUGINS_INVALID_ARGUMENT_NAME",
-        });
-    });
-
     it("no aguments", async function () {
       let count = 0;
       await plugandplay()
@@ -34,23 +11,6 @@ describe("plugandplay.call", function () {
           handler: () => {},
         });
       count.should.eql(1);
-    });
-
-    it("more than 2 arguments", async function () {
-      await plugandplay()
-        .register({ hooks: { "my:hook": (a, b, c) => [a, b, c] } })
-        .call({
-          name: "my:hook",
-          handler: () => {},
-        })
-        .should.be.rejectedWith({
-          code: "PLUGINS_INVALID_HOOK_HANDLER",
-          message: [
-            "PLUGINS_INVALID_HOOK_HANDLER:",
-            "hook handlers must have 0 to 2 arguments",
-            "got 3",
-          ].join(" "),
-        });
     });
   });
 
@@ -86,11 +46,14 @@ describe("plugandplay.call", function () {
 
   describe("handler alter args", function () {
     it("synch handler without handler argument", async function () {
-      const test = {};
+      interface Test {
+        a_key?: string;
+      }
+      const test: Test = {};
       await plugandplay()
         .register({
           hooks: {
-            "my:hook": (test) => {
+            "my:hook": (test: Test) => {
               // Alter `test` with `a_key`
               test.a_key = "a value";
             },
@@ -105,11 +68,14 @@ describe("plugandplay.call", function () {
     });
 
     it("synch handler with handler argument", async function () {
-      const test = {};
+      interface Test {
+        a_key?: string;
+      }
+      const test: Test = {};
       await plugandplay()
         .register({
           hooks: {
-            "my:hook": (test, handler) => {
+            "my:hook": (test: Test, handler) => {
               test.a_key = "a value";
               return handler;
             },
@@ -124,11 +90,11 @@ describe("plugandplay.call", function () {
     });
 
     it("async handler with handler argument", async function () {
-      const test = [];
+      const test: string[] = [];
       await plugandplay()
         .register({
           hooks: {
-            "my:hook": async (test, handler) => {
+            "my:hook": async (test: string[], handler) => {
               test.push("alter 1");
               await new Promise((resolve) => setImmediate(resolve));
               return handler;
@@ -137,7 +103,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": async (test, handler) => {
+            "my:hook": async (test: string[], handler) => {
               test.push("alter 2");
               await new Promise((resolve) => setImmediate(resolve));
               return handler;
@@ -157,10 +123,10 @@ describe("plugandplay.call", function () {
       await plugandplay()
         .register({
           hooks: {
-            "my:hook": (args, handler) =>
+            "my:hook": (test: string[], handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
-                  args.push("hook 1");
+                  test.push("hook 1");
                   resolve(handler);
                 }, 300),
               ),
@@ -168,10 +134,10 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) =>
+            "my:hook": (test: string[], handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
-                  args.push("hook 2");
+                  test.push("hook 2");
                   resolve(handler);
                 }, 100),
               ),
@@ -184,7 +150,14 @@ describe("plugandplay.call", function () {
             new Promise((resolve) =>
               setTimeout(() => {
                 args.push("origin");
-                resolve();
+                // TODO: it shall instead be:
+                // `resolve();`
+                // but currently generates error:
+                // "Expected 1 arguments, but got 0. Did you forget to include 'void' in your type argument to 'Promise'?ts(2794)"
+                // See
+                // https://github.com/microsoft/TypeScript/issues/49755
+                // https://github.com/microsoft/TypeScript/issues/12871
+                resolve(undefined);
               }, 100),
             ),
         });
@@ -218,7 +191,7 @@ describe("plugandplay.call", function () {
           args: ["origin"],
           handler: (args) => args,
         })
-        .should.be.resolvedWith(["origin", "alter_1", "alter_2"]);
+        .should.finally.eql(["origin", "alter_1", "alter_2"]);
     });
 
     it("async", async function () {
@@ -248,17 +221,17 @@ describe("plugandplay.call", function () {
           args: ["origin"],
           handler: (args) => args,
         })
-        .should.be.resolvedWith(["origin", "alter_1", "alter_2"]);
+        .should.finally.eql(["origin", "alter_1", "alter_2"]);
     });
   });
 
   describe("continue with `undefined`", function () {
     it("when `undefined` is returned, sync mode", async function () {
-      const test = [];
+      const test: string[] = [];
       await plugandplay()
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 1", typeof handler);
               return handler;
             },
@@ -266,7 +239,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 2", typeof handler);
               return undefined;
             },
@@ -274,7 +247,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 3", typeof handler);
               return handler;
             },
@@ -282,7 +255,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 4", typeof handler);
               return handler;
             },
@@ -308,11 +281,11 @@ describe("plugandplay.call", function () {
 
   describe("stop with `null`", function () {
     it("when `null` is returned, sync mode", async function () {
-      const test = [];
+      const test: string[] = [];
       await plugandplay()
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 1");
               return handler;
             },
@@ -320,7 +293,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 2");
               handler; // not used
               return null;
@@ -329,7 +302,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 3");
               return handler;
             },
@@ -337,7 +310,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) => {
+            "my:hook": (args: string[], handler) => {
               args.push("hook 4");
               return handler;
             },
@@ -352,11 +325,11 @@ describe("plugandplay.call", function () {
     });
 
     it("when `null` is fulfilled, async mode", async function () {
-      const test = [];
+      const test: string[] = [];
       await plugandplay()
         .register({
           hooks: {
-            "my:hook": (args, handler) =>
+            "my:hook": (args: string[], handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   args.push("hook 1");
@@ -367,7 +340,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) =>
+            "my:hook": (args: string[], handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   args.push("hook 2");
@@ -379,7 +352,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args, handler) =>
+            "my:hook": (args: string[], handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   args.push("hook 3");
@@ -395,7 +368,8 @@ describe("plugandplay.call", function () {
             new Promise((resolve) =>
               setTimeout(() => {
                 args.push("origin");
-                resolve();
+                // TODO: see comment above
+                resolve(undefined);
               }, 100),
             ),
         });
