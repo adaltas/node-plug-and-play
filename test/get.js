@@ -12,7 +12,35 @@ describe("plugandplay.get", function () {
         .should.eql([1, 2]);
     });
 
-    it("after and before as function", function () {
+    it("normalize default", function () {
+      const p = plugandplay().register({
+        name: "module/origin",
+        hooks: {
+          "my:hook:function": () => {},
+          "my:hook:property": {
+            handler: () => {},
+          },
+        },
+      });
+      p.get({ name: "my:hook:function" }).should.eql([
+        {
+          name: "my:hook:function",
+          plugin: "module/origin",
+          require: [],
+          handler: () => {},
+        },
+      ]);
+      p.get({ name: "my:hook:property" }).should.eql([
+        {
+          name: "my:hook:property",
+          plugin: "module/origin",
+          require: [],
+          handler: () => {},
+        },
+      ]);
+    });
+
+    it("normalize after and before as function", function () {
       plugandplay()
         .register({
           name: "module/after",
@@ -21,6 +49,31 @@ describe("plugandplay.get", function () {
         .register({
           name: "module/before",
           hooks: { "my:hook": () => {} },
+        })
+        .register({
+          name: "module/origin",
+          hooks: {
+            "my:hook": {
+              after: "module/after",
+              before: "module/before",
+              handler: () => {},
+            },
+          },
+        })
+        .get({ name: "my:hook" })
+        .map((hook) => hook.plugin)
+        .should.eql(["module/after", "module/origin", "module/before"]);
+    });
+
+    it("normalize after and before as handler property", function () {
+      plugandplay()
+        .register({
+          name: "module/after",
+          hooks: { "my:hook": { handler: () => {} } },
+        })
+        .register({
+          name: "module/before",
+          hooks: { "my:hook": { handler: () => {} } },
         })
         .register({
           name: "module/origin",
