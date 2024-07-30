@@ -119,15 +119,12 @@ const plugandplay = function ({ args, chain, parent, plugins = [] } = {}) {
           `got ${JSON.stringify(plugin)} instead.`,
         ]);
       }
-      if (plugin.hooks == null) {
-        plugin.hooks = {};
-      }
+      plugin.hooks ??= {};
       for (const name in plugin.hooks) {
         plugin.hooks[name] = normalize_hook(name, plugin.hooks[name]);
       }
-      if (plugin.require == null) {
-        plugin.require = [];
-      } else if (typeof plugin.require === "string") {
+      plugin.require ??= [];
+      if (typeof plugin.require === "string") {
         plugin.require = [plugin.require];
       }
       if (!Array.isArray(plugin.require)) {
