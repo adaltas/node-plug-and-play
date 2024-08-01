@@ -40,10 +40,10 @@ export interface PluginNormalized<HookArgs> {
   require: string[];
 }
 
-export interface Registry<Args> {
+export interface Registry<Args, Chain = undefined> {
   register: (
     plugin: Plugin<Args> | (<FnArgs, Args>(...Args: FnArgs[]) => Plugin<Args>),
-  ) => Registry<Args>;
+  ) => Registry<Args, Chain> | NonNullable<Chain>;
   registered: (name: string) => boolean;
   get: (args: {
     name: string;
@@ -64,54 +64,24 @@ export interface Registry<Args> {
   }) => unknown;
 }
 
-const normalize_hook = function <Args>(
-  name: string,
-  hook: Handler<Args> | Hook<Args> | Hook<Args>[],
-): NormalizedHook<Args>[] {
-  const hooks = Array.isArray(hook) ? hook : [hook];
-  return hooks.map(function (hook) {
-    if (typeof hook !== "function" && !is_object(hook)) {
-      throw error("PLUGINS_HOOK_INVALID_HANDLER", [
-        "no hook handler function could be found,",
-        "a hook must be defined as a function",
-        "or as an object with an handler property,",
-        `got ${JSON.stringify(hook)} instead.`,
-      ]);
-    }
-    const normalizedHook = {
-      after:
-        !(typeof hook !== "function" && hook.after) ? []
-        : typeof hook.after === "string" ? [hook.after]
-        : hook.after,
-      name: name,
-      before:
-        !(typeof hook !== "function" && hook.before) ? []
-        : typeof hook.before === "string" ? [hook.before]
-        : hook.before,
-      handler: typeof hook === "function" ? hook : hook.handler,
-    } as NormalizedHook<Args>;
-    return normalizedHook;
-  });
-};
-
-const plugandplay = function <Args>({
+const plugandplay = function <Args, Chain = undefined>({
   args = [],
   chain,
   parent,
   plugins = [],
 }: {
   args?: unknown[];
-  chain?: unknown;
+  chain?: Chain;
   parent?: Registry<Args>;
   plugins?: (
     | Plugin<Args>
     | (<FnArgs, Args>(...Args: FnArgs[]) => Plugin<Args>)
   )[];
-} = {}): Registry<Args> {
+} = {}): Registry<Args, Chain> {
   // Internal plugin store
   const store: PluginNormalized<Args>[] = [];
   // Public API definition
-  const registry: Registry<Args> = {
+  const registry: Registry<Args, Chain> = {
     // Register new plugins
     register: function (plugin) {
       if (typeof plugin !== "function" && !is_object_literal(plugin)) {
@@ -148,7 +118,7 @@ const plugandplay = function <Args>({
         name: plugin.name,
       };
       store.push(normalizedPlugin);
-      return chain || this;
+      return chain ?? registry;
     },
     registered: function (name) {
       for (const plugin of store) {
@@ -344,6 +314,36 @@ const plugandplay = function <Args>({
   }
   // return the object
   return registry;
+};
+
+const normalize_hook = function <Args>(
+  name: string,
+  hook: Handler<Args> | Hook<Args> | Hook<Args>[],
+): NormalizedHook<Args>[] {
+  const hooks = Array.isArray(hook) ? hook : [hook];
+  return hooks.map(function (hook) {
+    if (typeof hook !== "function" && !is_object(hook)) {
+      throw error("PLUGINS_HOOK_INVALID_HANDLER", [
+        "no hook handler function could be found,",
+        "a hook must be defined as a function",
+        "or as an object with an handler property,",
+        `got ${JSON.stringify(hook)} instead.`,
+      ]);
+    }
+    const normalizedHook = {
+      after:
+        !(typeof hook !== "function" && hook.after) ? []
+        : typeof hook.after === "string" ? [hook.after]
+        : hook.after,
+      name: name,
+      before:
+        !(typeof hook !== "function" && hook.before) ? []
+        : typeof hook.before === "string" ? [hook.before]
+        : hook.before,
+      handler: typeof hook === "function" ? hook : hook.handler,
+    } as NormalizedHook<Args>;
+    return normalizedHook;
+  });
 };
 
 const errors = {

@@ -28,8 +28,7 @@ describe("plugandplay.call_sync", function () {
               test.a_key = "a value";
             },
           },
-        })
-        .call_sync({
+        }).call_sync({
           name: "my:hook",
           args: test,
           handler: () => {},

@@ -1,48 +1,6 @@
 import { is_object_literal, is_object, merge } from "mixme";
 import toposort from "toposort";
 import error from "./error.js";
-const normalize_hook = function (name, hook) {
-    const hooks = Array.isArray(hook) ? hook : [hook];
-    return hooks.map(function (hook) {
-        if (typeof hook !== "function" && !is_object(hook)) {
-            throw error("PLUGINS_HOOK_INVALID_HANDLER", [
-                "no hook handler function could be found,",
-                "a hook must be defined as a function",
-                "or as an object with an handler property,",
-                `got ${JSON.stringify(hook)} instead.`,
-            ]);
-        }
-        const normalizedHook = {
-            after: !(typeof hook !== "function" && hook.after) ? []
-                : typeof hook.after === "string" ? [hook.after]
-                    : hook.after,
-            name: name,
-            before: !(typeof hook !== "function" && hook.before) ? []
-                : typeof hook.before === "string" ? [hook.before]
-                    : hook.before,
-            handler: typeof hook === "function" ? hook : hook.handler,
-        };
-        // if(typeof hook.after === "string")
-        // if (typeof hook === "function") {
-        //   normalizedHook.handler = hook;
-        // } else if (!is_object(hook)) {
-        //   throw error("PLUGINS_HOOK_INVALID_HANDLER", [
-        //     "no hook handler function could be found,",
-        //     "a hook must be defined as a function",
-        //     "or as an object with an handler property,",
-        //     `got ${JSON.stringify(hook)} instead.`,
-        //   ]);
-        // } else {
-        //   if (typeof hook.after === "string") {
-        //     normalizedHook.after = [hook.after];
-        //   }
-        //   if (typeof hook.before === "string") {
-        //     normalizedHook.before = [hook.before];
-        //   }
-        // }
-        return normalizedHook;
-    });
-};
 const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) {
     // Internal plugin store
     const store = [];
@@ -84,7 +42,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                 name: plugin.name,
             };
             store.push(normalizedPlugin);
-            return chain || this;
+            return chain ?? registry;
         },
         registered: function (name) {
             for (const plugin of store) {
@@ -284,6 +242,30 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
     }
     // return the object
     return registry;
+};
+const normalize_hook = function (name, hook) {
+    const hooks = Array.isArray(hook) ? hook : [hook];
+    return hooks.map(function (hook) {
+        if (typeof hook !== "function" && !is_object(hook)) {
+            throw error("PLUGINS_HOOK_INVALID_HANDLER", [
+                "no hook handler function could be found,",
+                "a hook must be defined as a function",
+                "or as an object with an handler property,",
+                `got ${JSON.stringify(hook)} instead.`,
+            ]);
+        }
+        const normalizedHook = {
+            after: !(typeof hook !== "function" && hook.after) ? []
+                : typeof hook.after === "string" ? [hook.after]
+                    : hook.after,
+            name: name,
+            before: !(typeof hook !== "function" && hook.before) ? []
+                : typeof hook.before === "string" ? [hook.before]
+                    : hook.before,
+            handler: typeof hook === "function" ? hook : hook.handler,
+        };
+        return normalizedHook;
+    });
 };
 const errors = {
     PLUGINS_HOOK_AFTER_INVALID: function ({ name, plugin, after, }) {

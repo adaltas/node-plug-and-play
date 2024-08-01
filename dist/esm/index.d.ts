@@ -23,8 +23,8 @@ export interface PluginNormalized<HookArgs> {
     name: string | undefined;
     require: string[];
 }
-export interface Registry<Args> {
-    register: (plugin: Plugin<Args> | (<FnArgs, Args>(...Args: FnArgs[]) => Plugin<Args>)) => Registry<Args>;
+export interface Registry<Args, Chain = undefined> {
+    register: (plugin: Plugin<Args> | (<FnArgs, Args>(...Args: FnArgs[]) => Plugin<Args>)) => Registry<Args, Chain> | NonNullable<Chain>;
     registered: (name: string) => boolean;
     get: (args: {
         name: string;
@@ -44,10 +44,10 @@ export interface Registry<Args> {
         name: string;
     }) => unknown;
 }
-declare const plugandplay: <Args>({ args, chain, parent, plugins, }?: {
+declare const plugandplay: <Args, Chain = undefined>({ args, chain, parent, plugins, }?: {
     args?: unknown[];
-    chain?: unknown;
+    chain?: Chain;
     parent?: Registry<Args>;
     plugins?: (Plugin<Args> | (<FnArgs, Args_1>(...Args: FnArgs[]) => Plugin<Args_1>))[];
-}) => Registry<Args>;
+}) => Registry<Args, Chain>;
 export { plugandplay };
