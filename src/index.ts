@@ -36,7 +36,7 @@ export interface Plugin<Args> {
 
 export interface PluginNormalized<HookArgs> {
   hooks: Record<string, NormalizedHook<HookArgs>[]>;
-  name?: string;
+  name: string | undefined;
   require: string[];
 }
 
@@ -371,7 +371,7 @@ const errors = {
     after,
   }: {
     name: string;
-    plugin?: string;
+    plugin: string | undefined;
     after: string;
   }) {
     throw error("PLUGINS_HOOK_AFTER_INVALID", [
@@ -387,7 +387,7 @@ const errors = {
     before,
   }: {
     name: string;
-    plugin?: string;
+    plugin: string | undefined;
     before: string;
   }) {
     throw error("PLUGINS_HOOK_BEFORE_INVALID", [
@@ -401,7 +401,7 @@ const errors = {
     plugin,
     require,
   }: {
-    plugin?: string;
+    plugin: string | undefined;
     require: string;
   }) {
     throw error("REQUIRED_PLUGIN", [
@@ -414,7 +414,7 @@ const errors = {
     name,
     require,
   }: {
-    name?: string;
+    name: string | undefined;
     require: string;
   }) {
     throw error("PLUGINS_REGISTER_INVALID_REQUIRE", [

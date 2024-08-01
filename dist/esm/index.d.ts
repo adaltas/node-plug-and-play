@@ -20,7 +20,7 @@ export interface Plugin<Args> {
 }
 export interface PluginNormalized<HookArgs> {
     hooks: Record<string, NormalizedHook<HookArgs>[]>;
-    name?: string;
+    name: string | undefined;
     require: string[];
 }
 export interface Registry<Args> {
