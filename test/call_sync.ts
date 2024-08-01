@@ -101,7 +101,7 @@ describe("plugandplay.call_sync", function () {
         .call_sync({
           name: "my:hook",
           args: ar,
-          handler: (ar) => ar.push("origin"),
+          handler: (ar: string[]) => ar.push("origin"),
         });
       ar.should.eql(["hook 1", "hook 2"]);
     });

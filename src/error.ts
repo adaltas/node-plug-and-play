@@ -1,6 +1,7 @@
 
 class PlugableError extends Error {
   public code: string;
+  [index: string]: unknown;
   constructor(
     code: string,
     message: string | (string | object)[],

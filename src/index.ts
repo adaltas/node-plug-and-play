@@ -12,44 +12,54 @@ import error from "./error.js";
 
 export type Handler<Args> = (
   args: Args,
-  handler?: Handler<Args>
-) => unknown | void | PromiseLike<unknown>
+  handler?: Handler<Args>,
+) => unknown | void | PromiseLike<unknown>;
 
 export interface Hook<Args> {
-  name?: string;
-  before?: string | string[];
   after?: string | string[];
+  before?: string | string[];
+  name?: string;
   handler: Handler<Args>;
 }
 
 export interface NormalizedHook<Args> extends Hook<Args> {
-  plugin: string;
-  require: string[];
+  after?: string[];
+  before?: string[];
+  name?: string;
+  plugin?: string;
+  require?: string[];
+  handler: Handler<Args>;
 }
 
 export interface Plugin<Args> {
-  hooks?: Record<string,Handler<Args> | Hook<Args>>;
+  hooks?: Record<string, Handler<Args> | Hook<Args>>;
   name?: string;
   require?: string | string[];
 }
 
-export interface Registry {
-  register: <Args>(
-    plugin: (Plugin<Args> | (<Args>(...Args) => Plugin<Args>)),
-  ) => Registry;
+export interface PluginNormalized<HookArgs> {
+  hooks: Record<string, NormalizedHook<HookArgs>[]>;
+  name?: string;
+  require?: string[];
+}
+
+export interface Registry<Args> {
+  register: (
+    plugin: Plugin<Args> | (<FnArgs, Args>(...Args: FnArgs[]) => Plugin<Args>),
+  ) => Registry<Args>;
   registered: (name: string) => boolean;
-  get: <Args>(args: {
+  get: (args: {
     name: string;
     hooks?: Handler<Args> | Hook<Args> | Hook<Args>[];
     sort?: boolean;
   }) => NormalizedHook<Args>[];
-  call: <Args>(args: {
+  call: (args: {
     args?: Args;
     handler?: Handler<Args>;
     hooks?: Hook<Args>[];
     name: string;
   }) => Promise<unknown>;
-  call_sync: <Args>(args: {
+  call_sync: (args: {
     args?: Args;
     handler?: Handler<Args>;
     hooks?: Hook<Args>[];
@@ -57,7 +67,10 @@ export interface Registry {
   }) => unknown;
 }
 
-const normalize_hook = function<Args> (name: string, hook: (Handler<Args> | Hook<Args> | Hook<Args>[])) {
+const normalize_hook = function <Args>(
+  name: string,
+  hook: Handler<Args> | Hook<Args> | Hook<Args>[],
+): NormalizedHook<Args>[] {
   const hooks = Array.isArray(hook) ? hook : [hook];
   return hooks.map(function (hook) {
     const normalizedHook = {
@@ -73,7 +86,7 @@ const normalize_hook = function<Args> (name: string, hook: (Handler<Args> | Hook
         "or as an object with an handler property,",
         `got ${JSON.stringify(hook)} instead.`,
       ]);
-    }else{
+    } else {
       if (typeof hook.after === "string") {
         normalizedHook.after = [hook.after];
       }
@@ -91,18 +104,22 @@ const plugandplay = function <Args>({
   parent,
   plugins = [],
 }: {
-  args?: unknown[];
+  args?: Args[];
   chain?: unknown;
-  parent?: Registry;
-  plugins?: (Plugin<Args> | (<Args>(...Args) => Plugin<Args>))[];
-} = {}): Registry {
+  parent?: Registry<Args>;
+  plugins?: (
+    | Plugin<Args>
+    | (<FnArgs, Args>(...Args: FnArgs[]) => Plugin<Args>)
+  )[];
+} = {}): Registry<Args> {
   // Internal plugin store
-  const store = [];
+  const store: PluginNormalized<Args>[] = [];
   // Public API definition
-  const registry: Registry = {
+  const registry: Registry<Args> = {
     // Register new plugins
     register: function (plugin) {
-      const normalizedPlugin = typeof plugin === "function" ? plugin.apply(null, args) : plugin;
+      const normalizedPlugin =
+        typeof plugin === "function" ? plugin.apply(null, args) : plugin;
       if (!is_object_literal(normalizedPlugin)) {
         throw error("PLUGINS_REGISTER_INVALID_ARGUMENT", [
           "a plugin must be an object literal or a function returning an object literal",
@@ -112,7 +129,10 @@ const plugandplay = function <Args>({
       }
       normalizedPlugin.hooks ??= {};
       for (const name in normalizedPlugin.hooks) {
-        normalizedPlugin.hooks[name] = normalize_hook(name, normalizedPlugin.hooks[name]);
+        normalizedPlugin.hooks[name] = normalize_hook(
+          name,
+          normalizedPlugin.hooks[name],
+        );
       }
       normalizedPlugin.require ??= [];
       if (typeof normalizedPlugin.require === "string") {
@@ -141,7 +161,7 @@ const plugandplay = function <Args>({
     get: function ({ name, hooks = [], sort = true }) {
       const normalizedHooks = [
         // Merge hooks provided by the user
-        ...normalize_hook(name, hooks),
+        ...normalize_hook<Args>(name, hooks),
         // With hooks present in the store
         ...store
           .map(function (plugin) {
@@ -163,7 +183,7 @@ const plugandplay = function <Args>({
                   require: plugin.require,
                 },
                 hook,
-              );
+              ) as NormalizedHook<Args>;
             });
           })
           .filter(Boolean)
@@ -174,7 +194,7 @@ const plugandplay = function <Args>({
         return normalizedHooks;
       }
       // Topological sort
-      const index = {};
+      const index: Record<string, NormalizedHook<Args>> = {};
       for (const hook of normalizedHooks) {
         if (hook.plugin) index[hook.plugin] = hook;
       }
@@ -197,7 +217,7 @@ const plugandplay = function <Args>({
               }
               return [index[after], hook];
             })
-            .filter(Boolean);
+            .filter(Boolean) as [NormalizedHook<Args>, NormalizedHook<Args>][];
         })
         .filter(Boolean);
       const edges_before = normalizedHooks
@@ -218,7 +238,7 @@ const plugandplay = function <Args>({
               }
               return [hook, index[before]];
             })
-            .filter(Boolean);
+            .filter(Boolean) as [NormalizedHook<Args>, NormalizedHook<Args>][];
         })
         .filter(Boolean);
       const edges = [...edges_after, ...edges_before].flat(1);
@@ -332,7 +352,15 @@ const plugandplay = function <Args>({
 };
 
 const errors = {
-  PLUGINS_HOOK_AFTER_INVALID: function ({ name, plugin, after }) {
+  PLUGINS_HOOK_AFTER_INVALID: function ({
+    name,
+    plugin,
+    after,
+  }: {
+    name: string;
+    plugin: string;
+    after: string;
+  }) {
     throw error("PLUGINS_HOOK_AFTER_INVALID", [
       `the hook ${JSON.stringify(name)}`,
       plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0,
@@ -340,7 +368,15 @@ const errors = {
       `in plugin ${JSON.stringify(after)} which does not exists.`,
     ]);
   },
-  PLUGINS_HOOK_BEFORE_INVALID: function ({ name, plugin, before }) {
+  PLUGINS_HOOK_BEFORE_INVALID: function ({
+    name,
+    plugin,
+    before,
+  }: {
+    name: string;
+    plugin: string;
+    before: string;
+  }) {
     throw error("PLUGINS_HOOK_BEFORE_INVALID", [
       `the hook ${JSON.stringify(name)}`,
       plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0,
@@ -348,14 +384,26 @@ const errors = {
       `in plugin ${JSON.stringify(before)} which does not exists.`,
     ]);
   },
-  REQUIRED_PLUGIN: function ({ plugin, require }) {
+  REQUIRED_PLUGIN: function ({
+    plugin,
+    require,
+  }: {
+    plugin: string;
+    require: string;
+  }) {
     throw error("REQUIRED_PLUGIN", [
       `the plugin ${JSON.stringify(plugin)}`,
       "requires a plugin",
       `named ${JSON.stringify(require)} which is not unregistered.`,
     ]);
   },
-  PLUGINS_REGISTER_INVALID_REQUIRE: function ({ name, require }) {
+  PLUGINS_REGISTER_INVALID_REQUIRE: function ({
+    name,
+    require,
+  }: {
+    name: string;
+    require: string;
+  }) {
     throw error("PLUGINS_REGISTER_INVALID_REQUIRE", [
       "the `require` property",
       name ? `in plugin ${JSON.stringify(name)}` : void 0,

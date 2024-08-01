@@ -16,11 +16,12 @@ describe("plugandplay.call", function () {
 
   describe("property `args`", function () {
     it("is passed to handlers", async function () {
-      const stack = [];
+      type Args = Record<"a_key", string>
+      const stack: Args[] = [];
       await plugandplay({
         plugins: [
           {
-            hooks: { "my:hook": (args) => stack.push(args) },
+            hooks: { "my:hook": (args: Args) => stack.push(args) },
           },
           {
             hooks: {
@@ -113,13 +114,13 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (test) => test.push("origin"),
+          handler: (test: string[]) => test.push("origin"),
         });
       test.should.eql(["alter 1", "alter 2", "origin"]);
     });
 
     it("async handler unordered timeout", async function () {
-      const test = [];
+      const test: string[] = [];
       await plugandplay()
         .register({
           hooks: {
@@ -146,7 +147,7 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (args) =>
+          handler: (args: string[]) =>
             new Promise((resolve) =>
               setTimeout(() => {
                 args.push("origin");
@@ -264,7 +265,7 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (args) => args.push("origin"),
+          handler: (args: string[]) => args.push("origin"),
         });
       test.should.eql([
         "hook 1",
@@ -319,7 +320,7 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (args) => args.push("origin"),
+          handler: (args: string[]) => args.push("origin"),
         });
       test.should.eql(["hook 1", "hook 2"]);
     });
@@ -364,7 +365,7 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (args) =>
+          handler: (args: string[]) =>
             new Promise((resolve) =>
               setTimeout(() => {
                 args.push("origin");

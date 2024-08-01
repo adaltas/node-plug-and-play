@@ -273,7 +273,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
     return registry;
 };
 const errors = {
-    PLUGINS_HOOK_AFTER_INVALID: function ({ name, plugin, after }) {
+    PLUGINS_HOOK_AFTER_INVALID: function ({ name, plugin, after, }) {
         throw error("PLUGINS_HOOK_AFTER_INVALID", [
             `the hook ${JSON.stringify(name)}`,
             plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0,
@@ -281,7 +281,7 @@ const errors = {
             `in plugin ${JSON.stringify(after)} which does not exists.`,
         ]);
     },
-    PLUGINS_HOOK_BEFORE_INVALID: function ({ name, plugin, before }) {
+    PLUGINS_HOOK_BEFORE_INVALID: function ({ name, plugin, before, }) {
         throw error("PLUGINS_HOOK_BEFORE_INVALID", [
             `the hook ${JSON.stringify(name)}`,
             plugin ? `in plugin ${JSON.stringify(plugin)}` : void 0,
@@ -289,14 +289,14 @@ const errors = {
             `in plugin ${JSON.stringify(before)} which does not exists.`,
         ]);
     },
-    REQUIRED_PLUGIN: function ({ plugin, require }) {
+    REQUIRED_PLUGIN: function ({ plugin, require, }) {
         throw error("REQUIRED_PLUGIN", [
             `the plugin ${JSON.stringify(plugin)}`,
             "requires a plugin",
             `named ${JSON.stringify(require)} which is not unregistered.`,
         ]);
     },
-    PLUGINS_REGISTER_INVALID_REQUIRE: function ({ name, require }) {
+    PLUGINS_REGISTER_INVALID_REQUIRE: function ({ name, require, }) {
         throw error("PLUGINS_REGISTER_INVALID_REQUIRE", [
             "the `require` property",
             name ? `in plugin ${JSON.stringify(name)}` : void 0,
