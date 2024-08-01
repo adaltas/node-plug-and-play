@@ -1,4 +1,4 @@
-export type Handler<Args> = (args: Args, handler?: Handler<Args>) => unknown | void | PromiseLike<unknown>;
+export type Handler<Args> = (handlerArgs: Args, handler?: Handler<Args>) => unknown | void | PromiseLike<unknown>;
 export interface Hook<Args> {
     after?: string | string[];
     before?: string | string[];
@@ -6,8 +6,8 @@ export interface Hook<Args> {
     handler: Handler<Args>;
 }
 export interface NormalizedHook<Args> extends Hook<Args> {
-    after?: string[];
-    before?: string[];
+    after: string[];
+    before: string[];
     name?: string;
     plugin?: string;
     require?: string[];
@@ -21,7 +21,7 @@ export interface Plugin<Args> {
 export interface PluginNormalized<HookArgs> {
     hooks: Record<string, NormalizedHook<HookArgs>[]>;
     name?: string;
-    require?: string[];
+    require: string[];
 }
 export interface Registry<Args> {
     register: (plugin: Plugin<Args> | (<FnArgs, Args>(...Args: FnArgs[]) => Plugin<Args>)) => Registry<Args>;
@@ -45,7 +45,7 @@ export interface Registry<Args> {
     }) => unknown;
 }
 declare const plugandplay: <Args>({ args, chain, parent, plugins, }?: {
-    args?: Args[];
+    args?: unknown[];
     chain?: unknown;
     parent?: Registry<Args>;
     plugins?: (Plugin<Args> | (<FnArgs, Args_1>(...Args: FnArgs[]) => Plugin<Args_1>))[];

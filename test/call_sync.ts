@@ -109,11 +109,12 @@ describe("plugandplay.call_sync", function () {
 
   describe("alter result", function () {
     it("sync", function () {
-      plugandplay()
+      const test = plugandplay()
         .register({
           hooks: {
             "my:hook": (args, handler) => () => {
-              const res = handler.call(null, args);
+              // TODO: handler argument is always defined if handler function length is 2
+              const res = handler?.call(null, args);
               res.push("alter_1");
               return res;
             },
@@ -122,7 +123,8 @@ describe("plugandplay.call_sync", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => () => {
-              const res = handler.call(null, args);
+              // TODO: handler argument is always defined if handler function length is 2
+              const res = handler?.call(null, args);
               res.push("alter_2");
               return res;
             },
@@ -134,8 +136,8 @@ describe("plugandplay.call_sync", function () {
           handler: (args) => {
             return args;
           },
-        })
-        .should.eql(["origin", "alter_1", "alter_2"]);
+        }) as string[];
+      test.should.eql(["origin", "alter_1", "alter_2"]);
     });
   });
 });

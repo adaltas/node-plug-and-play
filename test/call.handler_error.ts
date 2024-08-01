@@ -79,7 +79,8 @@ describe("plugandplay.call.handler_error", function () {
           hooks: {
             "my:hook": {
               handler: (args: string, handler) => async () => {
-                await handler.apply(undefined, []);
+                // TODO: handler argument is always defined if handler function length is 2
+                await handler?.apply(undefined, []);
                 throw Error(args);
               },
             },

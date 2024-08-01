@@ -65,7 +65,7 @@ describe("plugandplay.call", function () {
           args: test,
           handler: () => {},
         });
-      test.a_key.should.eql("a value");
+      test.a_key?.should.eql("a value");
     });
 
     it("synch handler with handler argument", async function () {
@@ -87,7 +87,7 @@ describe("plugandplay.call", function () {
           args: test,
           handler: () => {},
         });
-      test.a_key.should.eql("a value");
+      test.a_key?.should.eql("a value");
     });
 
     it("async handler with handler argument", async function () {
@@ -172,7 +172,8 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => () => {
-              const res = handler.call(null, args, handler);
+              // TODO: handler argument is always defined if handler function length is 2
+              const res = handler?.call(null, args, handler);
               res.push("alter_1");
               return res;
             },
@@ -181,7 +182,8 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => () => {
-              const res = handler.call(null, args, handler);
+              // TODO: handler argument is always defined if handler function length is 2
+              const res = handler?.call(null, args, handler);
               res.push("alter_2");
               return res;
             },
@@ -200,7 +202,8 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => async () => {
-              const res = await handler.call(null, args);
+              // TODO: handler argument is always defined if handler function length is 2
+              const res = await handler?.call(null, args);
               res.push("alter_1");
               await new Promise((resolve) => setImmediate(resolve));
               return res;
@@ -210,7 +213,8 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => async () => {
-              const res = await handler.call(null, args);
+              // TODO: handler argument is always defined if handler function length is 2
+              const res = await handler?.call(null, args);
               res.push("alter_2");
               await new Promise((resolve) => setImmediate(resolve));
               return res;

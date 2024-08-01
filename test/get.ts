@@ -24,6 +24,8 @@ describe("plugandplay.get", function () {
       });
       p.get({ name: "my:hook:function" }).should.eql([
         {
+          after: [],
+          before: [],
           name: "my:hook:function",
           plugin: "module/origin",
           require: [],
@@ -32,6 +34,8 @@ describe("plugandplay.get", function () {
       ]);
       p.get({ name: "my:hook:property" }).should.eql([
         {
+          after: [],
+          before: [],
           name: "my:hook:property",
           plugin: "module/origin",
           require: [],
