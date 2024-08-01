@@ -139,26 +139,32 @@ const plugandplay = function <Args>({
           `got ${JSON.stringify(plugin)} instead.`,
         ]);
       }
+      // Obtain plugin from user function
+      plugin = typeof plugin === "function" ? plugin(...args) : plugin;
+      // Hook normalization
+      const hooksNormalized: Record<string, NormalizedHook<Args>[]> = {}
+      for( const [name, hook] of Object.entries(plugin.hooks || []) ){
+        hooksNormalized[name] = normalize_hook(name, hook)
+      }
+      // Require normalization
+      if (plugin.require && !Array.isArray(plugin.require)) {
+        plugin.require = [plugin.require];
+      }
+      const require = !plugin.require ? [] : !Array.isArray(plugin.require) ? [plugin.require] : plugin.require
+      const requireNormalized: string[] = (require).map((require) => {
+        if (typeof require !== "string")
+          throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({
+            name: plugin.name,
+            require: require,
+          });
+        return require
+      })
+      // Plugin normalization
       const normalizedPlugin: PluginNormalized<Args> = {
-        hooks: {},
-        require: [],
-        ...(typeof plugin === "function" ? plugin.apply(null, args) : plugin),
+        hooks: hooksNormalized,
+        require: requireNormalized,
+        name: plugin.name,
       };
-      for (const name in normalizedPlugin.hooks) {
-        normalizedPlugin.hooks[name] = normalize_hook(
-          name,
-          normalizedPlugin.hooks[name],
-        );
-      }
-      if (typeof normalizedPlugin.require === "string") {
-        normalizedPlugin.require = [normalizedPlugin.require];
-      }
-      if (!Array.isArray(normalizedPlugin.require)) {
-        throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({
-          name: normalizedPlugin.name,
-          require: normalizedPlugin.require,
-        });
-      }
       store.push(normalizedPlugin);
       return chain || this;
     },
@@ -271,12 +277,12 @@ const plugandplay = function <Args>({
         ]);
       }
       // Retrieve the name hooks
-      hooks = this.get({
+      const hooksNormalized: NormalizedHook<Args>[] = this.get({
         hooks: hooks,
         name: name,
       });
       // Call the hooks
-      for (const hook of hooks) {
+      for (const hook of hooksNormalized) {
         switch (hook.handler.length) {
           case 0:
           case 1:
@@ -320,12 +326,12 @@ const plugandplay = function <Args>({
         ]);
       }
       // Retrieve the name hooks
-      hooks = this.get({
+      const hooksNormalized: NormalizedHook<Args>[] = this.get({
         hooks: hooks,
         name: name,
       });
       // Call the hooks
-      for (const hook of hooks) {
+      for (const hook of hooksNormalized) {
         switch (hook.handler.length) {
           case 0:
           case 1:
