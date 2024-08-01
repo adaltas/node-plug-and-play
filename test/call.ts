@@ -51,10 +51,10 @@ describe("plugandplay.call", function () {
         a_key?: string;
       }
       const test: Test = {};
-      await plugandplay()
+      await plugandplay<Test>()
         .register({
           hooks: {
-            "my:hook": (test: Test) => {
+            "my:hook": (test) => {
               // Alter `test` with `a_key`
               test.a_key = "a value";
             },
@@ -73,10 +73,10 @@ describe("plugandplay.call", function () {
         a_key?: string;
       }
       const test: Test = {};
-      await plugandplay()
+      await plugandplay<Test>()
         .register({
           hooks: {
-            "my:hook": (test: Test, handler) => {
+            "my:hook": (test, handler) => {
               test.a_key = "a value";
               return handler;
             },
@@ -92,10 +92,10 @@ describe("plugandplay.call", function () {
 
     it("async handler with handler argument", async function () {
       const test: string[] = [];
-      await plugandplay()
+      await plugandplay<string[]>()
         .register({
           hooks: {
-            "my:hook": async (test: string[], handler) => {
+            "my:hook": async (test, handler) => {
               test.push("alter 1");
               await new Promise((resolve) => setImmediate(resolve));
               return handler;
@@ -104,7 +104,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": async (test: string[], handler) => {
+            "my:hook": async (test, handler) => {
               test.push("alter 2");
               await new Promise((resolve) => setImmediate(resolve));
               return handler;
@@ -114,17 +114,17 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (test: string[]) => test.push("origin"),
+          handler: (test) => test.push("origin"),
         });
       test.should.eql(["alter 1", "alter 2", "origin"]);
     });
 
     it("async handler unordered timeout", async function () {
       const test: string[] = [];
-      await plugandplay()
+      await plugandplay<string[]>()
         .register({
           hooks: {
-            "my:hook": (test: string[], handler) =>
+            "my:hook": (test, handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   test.push("hook 1");
@@ -135,7 +135,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (test: string[], handler) =>
+            "my:hook": (test, handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   test.push("hook 2");
@@ -147,7 +147,7 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (args: string[]) =>
+          handler: (args) =>
             new Promise((resolve) =>
               setTimeout(() => {
                 args.push("origin");
@@ -233,10 +233,10 @@ describe("plugandplay.call", function () {
   describe("continue with `undefined`", function () {
     it("when `undefined` is returned, sync mode", async function () {
       const test: string[] = [];
-      await plugandplay()
+      await plugandplay<string[]>()
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) => {
+            "my:hook": (args, handler) => {
               args.push("hook 1", typeof handler);
               return handler;
             },
@@ -287,10 +287,10 @@ describe("plugandplay.call", function () {
   describe("stop with `null`", function () {
     it("when `null` is returned, sync mode", async function () {
       const test: string[] = [];
-      await plugandplay()
+      await plugandplay<string[]>()
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) => {
+            "my:hook": (args, handler) => {
               args.push("hook 1");
               return handler;
             },
@@ -298,7 +298,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) => {
+            "my:hook": (args, handler) => {
               args.push("hook 2");
               handler; // not used
               return null;
@@ -307,7 +307,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) => {
+            "my:hook": (args, handler) => {
               args.push("hook 3");
               return handler;
             },
@@ -315,7 +315,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) => {
+            "my:hook": (args, handler) => {
               args.push("hook 4");
               return handler;
             },
@@ -324,17 +324,17 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (args: string[]) => args.push("origin"),
+          handler: (args) => args.push("origin"),
         });
       test.should.eql(["hook 1", "hook 2"]);
     });
 
     it("when `null` is fulfilled, async mode", async function () {
       const test: string[] = [];
-      await plugandplay()
+      await plugandplay<string[]>()
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) =>
+            "my:hook": (args, handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   args.push("hook 1");
@@ -345,7 +345,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) =>
+            "my:hook": (args, handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   args.push("hook 2");
@@ -357,7 +357,7 @@ describe("plugandplay.call", function () {
         })
         .register({
           hooks: {
-            "my:hook": (args: string[], handler) =>
+            "my:hook": (args, handler) =>
               new Promise((resolve) =>
                 setTimeout(() => {
                   args.push("hook 3");
@@ -369,7 +369,7 @@ describe("plugandplay.call", function () {
         .call({
           name: "my:hook",
           args: test,
-          handler: (args: string[]) =>
+          handler: (args) =>
             new Promise((resolve) =>
               setTimeout(() => {
                 args.push("origin");

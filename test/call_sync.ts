@@ -20,10 +20,10 @@ describe("plugandplay.call_sync", function () {
         a_key?: string;
       }
       const test: Test = {};
-      plugandplay()
+      plugandplay<Test>()
         .register({
           hooks: {
-            "my:hook": (test: Test) => {
+            "my:hook": (test) => {
               // Alter `test` with `a_key`
               test.a_key = "a value";
             },
@@ -38,45 +38,45 @@ describe("plugandplay.call_sync", function () {
     });
 
     it("synch handler with handler argument", function () {
-      const plugins = plugandplay();
-      plugins.register({
-        hooks: {
-          "my:hook": (test: Test, handler) => {
-            test.a_key = "a value";
-            return handler;
-          },
-        },
-      });
       interface Test {
         a_key?: string;
       }
       const test: Test = {};
-      plugins.call_sync({
-        name: "my:hook",
-        args: test,
-        handler: () => {},
-      });
+      plugandplay<Test>()
+        .register({
+          hooks: {
+            "my:hook": (test, handler) => {
+              test.a_key = "a value";
+              return handler;
+            },
+          },
+        })
+        .call_sync({
+          name: "my:hook",
+          args: test,
+          handler: () => {},
+        });
       test.a_key?.should.eql("a value");
     });
   });
 
   describe("stop with null", function () {
     it("when `null` is returned, sync mode", function () {
-      type Ar = string[];
-      const ar: Ar = [];
-      plugandplay()
+      type Test = string[];
+      const test: Test = [];
+      plugandplay<Test>()
         .register({
           hooks: {
-            "my:hook": (ar: Ar, handler) => {
-              ar.push("hook 1");
+            "my:hook": (test: Test, handler) => {
+              test.push("hook 1");
               return handler;
             },
           },
         })
         .register({
           hooks: {
-            "my:hook": (ar: Ar, handler) => {
-              ar.push("hook 2");
+            "my:hook": (test: Test, handler) => {
+              test.push("hook 2");
               handler; // not used
               return null;
             },
@@ -84,26 +84,26 @@ describe("plugandplay.call_sync", function () {
         })
         .register({
           hooks: {
-            "my:hook": (ar: Ar, handler) => {
-              ar.push("hook 3");
+            "my:hook": (test: Test, handler) => {
+              test.push("hook 3");
               return handler;
             },
           },
         })
         .register({
           hooks: {
-            "my:hook": (ar: Ar, handler) => {
-              ar.push("hook 4");
+            "my:hook": (test: Test, handler) => {
+              test.push("hook 4");
               return handler;
             },
           },
         })
         .call_sync({
           name: "my:hook",
-          args: ar,
-          handler: (ar: string[]) => ar.push("origin"),
+          args: test,
+          handler: (test: string[]) => test.push("origin"),
         });
-      ar.should.eql(["hook 1", "hook 2"]);
+      test.should.eql(["hook 1", "hook 2"]);
     });
   });
 
