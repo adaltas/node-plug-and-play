@@ -90,24 +90,6 @@ const normalize_hook = function <Args>(
         : hook.before,
       handler: typeof hook === "function" ? hook : hook.handler,
     } as NormalizedHook<Args>;
-    // if(typeof hook.after === "string")
-    // if (typeof hook === "function") {
-    //   normalizedHook.handler = hook;
-    // } else if (!is_object(hook)) {
-    //   throw error("PLUGINS_HOOK_INVALID_HANDLER", [
-    //     "no hook handler function could be found,",
-    //     "a hook must be defined as a function",
-    //     "or as an object with an handler property,",
-    //     `got ${JSON.stringify(hook)} instead.`,
-    //   ]);
-    // } else {
-    //   if (typeof hook.after === "string") {
-    //     normalizedHook.after = [hook.after];
-    //   }
-    //   if (typeof hook.before === "string") {
-    //     normalizedHook.before = [hook.before];
-    //   }
-    // }
     return normalizedHook;
   });
 };
@@ -185,9 +167,9 @@ const plugandplay = function <Args>({
         ...normalize_hook<Args>(name, hooks),
         // With hooks present in the store
         ...store
-          // Only select plugins with the requested hook
-          .filter( (plugin) => plugin.hooks[name])
           .map(function (plugin) {
+            // Only select plugins with the requested hook
+            if (!plugin.hooks[name]) return []
             // Validate plugin requirements
             for (const require of plugin.require) {
               if (!registry.registered(require)) {
@@ -197,7 +179,7 @@ const plugandplay = function <Args>({
                 });
               }
             }
-            return plugin.hooks[name].map(function (hook) {
+            return plugin.hooks[name]?.map(function (hook) {
               return merge(
                 {
                   plugin: plugin.name,

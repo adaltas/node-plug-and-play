@@ -103,9 +103,10 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                 ...normalize_hook(name, hooks),
                 // With hooks present in the store
                 ...store
-                    // Only select plugins with the requested hook
-                    .filter((plugin) => plugin.hooks[name])
                     .map(function (plugin) {
+                    // Only select plugins with the requested hook
+                    if (!plugin.hooks[name])
+                        return [];
                     // Validate plugin requirements
                     for (const require of plugin.require) {
                         if (!registry.registered(require)) {
@@ -115,7 +116,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                             });
                         }
                     }
-                    return plugin.hooks[name].map(function (hook) {
+                    return plugin.hooks[name]?.map(function (hook) {
                         return merge({
                             plugin: plugin.name,
                             require: plugin.require,
