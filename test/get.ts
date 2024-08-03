@@ -8,7 +8,7 @@ describe("plugandplay.get", function () {
         .register({ hooks: { "my:hook": () => 2 } })
         .register({ hooks: { "another:hook": () => 2 } })
         .get({ name: "my:hook" })
-        .map((hook) => hook.handler(undefined))
+        .map((hook) => hook.handler.call(undefined))
         .should.eql([1, 2]);
     });
 
@@ -117,6 +117,7 @@ describe("plugandplay.get", function () {
       plugandplay()
         .register({
           name: "module/required",
+          hooks: {}
         })
         .register({
           name: "module/parent",
@@ -155,6 +156,7 @@ describe("plugandplay.get", function () {
         plugandplay()
           .register({
             name: "module/after",
+            hooks: {}
           })
           .register({
             hooks: {

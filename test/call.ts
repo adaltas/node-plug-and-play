@@ -46,16 +46,17 @@ describe("plugandplay.call", function () {
   });
 
   describe("handler alter args", function () {
+
     it("synch handler without handler argument", async function () {
-      interface Test {
-        a_key?: string;
-      }
-      const test: Test = {};
-      await plugandplay<Test>()
+      const test = {
+        a_key: 'overwrite'
+      };
+      await plugandplay<{
+        "my:hook": {a_key: string}
+      }>()
         .register({
           hooks: {
             "my:hook": (test) => {
-              // Alter `test` with `a_key`
               test.a_key = "a value";
             },
           },
@@ -65,15 +66,14 @@ describe("plugandplay.call", function () {
           args: test,
           handler: () => {},
         });
-      test.a_key?.should.eql("a value");
+      test.a_key.should.eql("a value");
     });
 
     it("synch handler with handler argument", async function () {
-      interface Test {
-        a_key?: string;
-      }
-      const test: Test = {};
-      await plugandplay<Test>()
+      const test: {a_key?: string} = {};
+      await plugandplay<{
+        "my:hook": {a_key?: string}
+      }>()
         .register({
           hooks: {
             "my:hook": (test, handler) => {
@@ -92,7 +92,9 @@ describe("plugandplay.call", function () {
 
     it("async handler with handler argument", async function () {
       const test: string[] = [];
-      await plugandplay<string[]>()
+      await plugandplay<{
+        "my:hook": string[]
+      }>()
         .register({
           hooks: {
             "my:hook": async (test, handler) => {
@@ -121,7 +123,9 @@ describe("plugandplay.call", function () {
 
     it("async handler unordered timeout", async function () {
       const test: string[] = [];
-      await plugandplay<string[]>()
+      await plugandplay<{
+        "my:hook": string[]
+      }>()
         .register({
           hooks: {
             "my:hook": (test, handler) =>
@@ -233,7 +237,9 @@ describe("plugandplay.call", function () {
   describe("continue with `undefined`", function () {
     it("when `undefined` is returned, sync mode", async function () {
       const test: string[] = [];
-      await plugandplay<string[]>()
+      await plugandplay<{
+        "my:hook": string[]
+      }>()
         .register({
           hooks: {
             "my:hook": (args, handler) => {
@@ -287,7 +293,9 @@ describe("plugandplay.call", function () {
   describe("stop with `null`", function () {
     it("when `null` is returned, sync mode", async function () {
       const test: string[] = [];
-      await plugandplay<string[]>()
+      await plugandplay<{
+        "my:hook": string[]
+      }>()
         .register({
           hooks: {
             "my:hook": (args, handler) => {
@@ -331,7 +339,9 @@ describe("plugandplay.call", function () {
 
     it("when `null` is fulfilled, async mode", async function () {
       const test: string[] = [];
-      await plugandplay<string[]>()
+      await plugandplay<{
+        "my:hook": string[]
+      }>()
         .register({
           hooks: {
             "my:hook": (args, handler) =>

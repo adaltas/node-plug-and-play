@@ -9,7 +9,7 @@ describe("plugandplay.register", function () {
         },
       })
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler(undefined))
+      .map((hook) => hook.handler.call(undefined))
       .should.eql([1]);
   });
 
@@ -21,7 +21,7 @@ describe("plugandplay.register", function () {
         },
       }))
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler(undefined))
+      .map((hook) => hook.handler.call(undefined))
       .should.eql([1]);
   });
 });

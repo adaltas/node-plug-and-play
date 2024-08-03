@@ -48,7 +48,9 @@ describe("plugandplay.call.handler_error", function () {
   });
 
   it("throw error in returned handler, before parent handler", async function () {
-    await plugandplay({
+    await plugandplay<{
+      "my:hook": string
+    }>({
       plugins: [
         {
           name: "my:plugin",
@@ -72,7 +74,9 @@ describe("plugandplay.call.handler_error", function () {
   });
 
   it("throw error in returned handler, after parent handler", async function () {
-    await plugandplay({
+    await plugandplay<{
+      "my:hook": string
+    }>({
       plugins: [
         {
           name: "my:plugin",

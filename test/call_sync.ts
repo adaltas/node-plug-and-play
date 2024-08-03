@@ -16,11 +16,12 @@ describe("plugandplay.call_sync", function () {
 
   describe("handler alter args", function () {
     it("synch handler without handler argument", function () {
-      interface Test {
-        a_key?: string;
-      }
-      const test: Test = {};
-      plugandplay<Test>()
+      const test = {
+        a_key: "overwrite"
+      };
+      plugandplay<{
+        "my:hook": {a_key: string}
+      }>()
         .register({
           hooks: {
             "my:hook": (test) => {
@@ -33,15 +34,14 @@ describe("plugandplay.call_sync", function () {
           args: test,
           handler: () => {},
         });
-      test.a_key?.should.eql("a value");
+      test.a_key.should.eql("a value");
     });
 
     it("synch handler with handler argument", function () {
-      interface Test {
-        a_key?: string;
-      }
-      const test: Test = {};
-      plugandplay<Test>()
+      const test: { a_key?: string } = {};
+      plugandplay<{
+        "my:hook": {a_key?: string}
+      }>()
         .register({
           hooks: {
             "my:hook": (test, handler) => {
@@ -63,7 +63,9 @@ describe("plugandplay.call_sync", function () {
     it("when `null` is returned, sync mode", function () {
       type Test = string[];
       const test: Test = [];
-      plugandplay<Test>()
+      plugandplay<{
+        "my:hook": string[]
+      }>()
         .register({
           hooks: {
             "my:hook": (test: Test, handler) => {

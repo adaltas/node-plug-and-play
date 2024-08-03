@@ -1,6 +1,16 @@
-import { is_object_literal, is_object, merge } from "mixme";
+import { is_object_literal, is_object } from "mixme";
 import toposort from "toposort";
 import error from "./error.js";
+// interface Config {
+//   "test_1": {key_1: string}
+// }
+// interface Config {
+//   "test_2": {a_key_2: string}
+// }
+// type Toto<T> = {
+//   [N in keyof T]: T
+// };
+// const plugandplay = function <T extends Toto<Config> = Toto<Config>, Chain = undefined>({
 const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) {
     // Internal plugin store
     const store = [];
@@ -18,9 +28,15 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
             // Obtain plugin from user function
             plugin = typeof plugin === "function" ? plugin(...args) : plugin;
             // Hook normalization
+            // const hooksNormalized: Record<string, NormalizedPlugin<T, K>[]> = {}
             const hooksNormalized = {};
-            for (const [name, hook] of Object.entries(plugin.hooks || [])) {
-                hooksNormalized[name] = normalize_hook(name, hook);
+            // for( const [name, hook] of Object.entries(plugin.hooks || []) ){
+            //   hooksNormalized[name] = normalize_hook(name, hook)
+            // }
+            for (const name in plugin.hooks) {
+                if (!plugin.hooks[name])
+                    continue;
+                hooksNormalized[name] = normalize_hook(name, plugin.hooks[name]);
             }
             // Require normalization
             if (plugin.require && !Array.isArray(plugin.require)) {
@@ -64,7 +80,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                     .map(function (plugin) {
                     // Only select plugins with the requested hook
                     if (!plugin.hooks[name])
-                        return [];
+                        return;
                     // Validate plugin requirements
                     for (const require of plugin.require) {
                         if (!registry.registered(require)) {
@@ -74,14 +90,15 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                             });
                         }
                     }
-                    return plugin.hooks[name]?.map(function (hook) {
-                        return merge({
-                            plugin: plugin.name,
-                            require: plugin.require,
-                        }, hook);
-                    });
+                    return plugin.hooks[name]?.map((hook) => ({
+                        plugin: plugin.name,
+                        require: plugin.require,
+                        ...hook,
+                    }));
                 })
-                    .filter(Boolean)
+                    .filter(function (hook) {
+                    return hook !== undefined;
+                })
                     .flat(1),
                 ...(parent ? parent.get({ name: name, sort: false }) : []),
             ];
@@ -206,12 +223,12 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                 ]);
             }
             // Retrieve the name hooks
-            hooks = this.get({
+            const hooksNormalized = this.get({
                 hooks: hooks,
                 name: name,
             });
             // Call the hooks
-            for (const hook of hooks) {
+            for (const hook of hooksNormalized) {
                 switch (hook.handler.length) {
                     case 0:
                     case 1:
@@ -254,7 +271,7 @@ const normalize_hook = function (name, hook) {
                 `got ${JSON.stringify(hook)} instead.`,
             ]);
         }
-        const normalizedHook = {
+        return {
             after: !(typeof hook !== "function" && hook.after) ? []
                 : typeof hook.after === "string" ? [hook.after]
                     : hook.after,
@@ -264,7 +281,6 @@ const normalize_hook = function (name, hook) {
                     : hook.before,
             handler: typeof hook === "function" ? hook : hook.handler,
         };
-        return normalizedHook;
     });
 };
 const errors = {

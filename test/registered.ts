@@ -20,6 +20,7 @@ describe("plugandplay.registered", function () {
       plugins: [
         {
           name: "module/registered",
+          hooks: {}
         },
       ],
     })
@@ -34,6 +35,7 @@ describe("plugandplay.registered", function () {
           plugins: [
             {
               name: "module/registered",
+              hooks: {}
             },
           ],
         }),
