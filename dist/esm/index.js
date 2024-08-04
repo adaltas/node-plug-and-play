@@ -15,7 +15,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
     // Internal plugin store
     const store = [];
     // Public API definition
-    const registry = {
+    const api = {
         // Register new plugins
         register: function (plugin) {
             if (typeof plugin !== "function" && !is_object_literal(plugin)) {
@@ -56,7 +56,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                 name: plugin.name,
             };
             store.push(normalizedPlugin);
-            return chain ?? registry;
+            return chain ?? api;
         },
         registered: function (name) {
             for (const plugin of store) {
@@ -81,7 +81,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                         return;
                     // Validate plugin requirements
                     for (const require of plugin.require) {
-                        if (!registry.registered(require)) {
+                        if (!api.registered(require)) {
                             throw errors.REQUIRED_PLUGIN({
                                 plugin: plugin.name,
                                 require: require,
@@ -118,7 +118,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                     if (index[after]) {
                         result.push([index[after], hook]);
                     }
-                    else if (registry.registered(after)) {
+                    else if (api.registered(after)) {
                         throw errors.PLUGINS_HOOK_AFTER_INVALID({
                             name: name,
                             plugin: hook.plugin,
@@ -133,7 +133,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                     if (index[before]) {
                         result.push([hook, index[before]]);
                     }
-                    else if (registry.registered(before)) {
+                    else if (api.registered(before)) {
                         throw errors.PLUGINS_HOOK_BEFORE_INVALID({
                             name: name,
                             plugin: hook.plugin,
@@ -267,10 +267,10 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
     };
     // Register initial plugins
     for (const plugin of plugins) {
-        registry.register(plugin);
+        api.register(plugin);
     }
     // return the object
-    return registry;
+    return api;
 };
 const normalize_hook = function (name, hook) {
     const hooks = Array.isArray(hook) ? hook : [hook];

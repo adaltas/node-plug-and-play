@@ -46,7 +46,7 @@ export interface PluginNormalized<T> {
   require: string[];
 }
 
-export interface PlugAndPlay<T, Chain = undefined> {
+export interface Api<T, Chain = undefined> {
   call: <K extends keyof T>(options: {
     args: T[K];
     handler?: Handler<T[K]>;
@@ -68,7 +68,7 @@ export interface PlugAndPlay<T, Chain = undefined> {
   ) => HookNormalized<T, K>[];
   register: (
     plugin: Plugin<T> | ((...Args: unknown[]) => Plugin<T>),
-  ) => PlugAndPlay<T, Chain> | NonNullable<Chain>;
+  ) => Api<T, Chain> | NonNullable<Chain>;
   registered: (name: PropertyKey) => boolean;
 }
 
@@ -94,13 +94,13 @@ const plugandplay = function <
 }: {
   args?: unknown[];
   chain?: Chain;
-  parent?: PlugAndPlay<T>;
+  parent?: Api<T>;
   plugins?: (Plugin<T> | (<FnArgs, T>(...Args: FnArgs[]) => Plugin<T>))[];
-} = {}): PlugAndPlay<T, Chain> {
+} = {}): Api<T, Chain> {
   // Internal plugin store
   const store: PluginNormalized<T>[] = [];
   // Public API definition
-  const registry: PlugAndPlay<T, Chain> = {
+  const api: Api<T, Chain> = {
     // Register new plugins
     register: function (plugin) {
       if (typeof plugin !== "function" && !is_object_literal(plugin)) {
@@ -141,7 +141,7 @@ const plugandplay = function <
         name: plugin.name,
       };
       store.push(normalizedPlugin);
-      return chain ?? registry;
+      return chain ?? api;
     },
     registered: function (name) {
       for (const plugin of store) {
@@ -169,7 +169,7 @@ const plugandplay = function <
             if (!plugin.hooks[name]) return;
             // Validate plugin requirements
             for (const require of plugin.require) {
-              if (!registry.registered(require)) {
+              if (!api.registered(require)) {
                 throw errors.REQUIRED_PLUGIN({
                   plugin: plugin.name,
                   require: require,
@@ -208,7 +208,7 @@ const plugandplay = function <
         return hook.after.reduce<Test>(function (result, after) {
           if (index[after]) {
             result.push([index[after], hook]);
-          } else if (registry.registered(after)) {
+          } else if (api.registered(after)) {
             throw errors.PLUGINS_HOOK_AFTER_INVALID({
               name: name,
               plugin: hook.plugin,
@@ -222,7 +222,7 @@ const plugandplay = function <
         return hook.before.reduce<Test>(function (result, before) {
           if (index[before]) {
             result.push([hook, index[before]]);
-          } else if (registry.registered(before)) {
+          } else if (api.registered(before)) {
             throw errors.PLUGINS_HOOK_BEFORE_INVALID({
               name: name,
               plugin: hook.plugin,
@@ -350,10 +350,10 @@ const plugandplay = function <
   };
   // Register initial plugins
   for (const plugin of plugins) {
-    registry.register(plugin);
+    api.register(plugin);
   }
   // return the object
-  return registry;
+  return api;
 };
 
 type NormalizeHook = <T, K extends keyof T>(

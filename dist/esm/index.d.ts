@@ -27,7 +27,7 @@ export interface PluginNormalized<T> {
     name: PropertyKey | undefined;
     require: string[];
 }
-export interface PlugAndPlay<T, Chain = undefined> {
+export interface Api<T, Chain = undefined> {
     call: <K extends keyof T>(options: {
         args: T[K];
         handler?: Handler<T[K]>;
@@ -45,13 +45,38 @@ export interface PlugAndPlay<T, Chain = undefined> {
         hooks?: Handler<T[K]> | Hook<T[K]> | Hook<T[K]>[];
         sort?: boolean;
     }) => HookNormalized<T, K>[];
-    register: (plugin: Plugin<T> | ((...Args: unknown[]) => Plugin<T>)) => PlugAndPlay<T, Chain> | NonNullable<Chain>;
+    register: (plugin: Plugin<T> | ((...Args: unknown[]) => Plugin<T>)) => Api<T, Chain> | NonNullable<Chain>;
     registered: (name: PropertyKey) => boolean;
 }
+/**
+ * A function to initialize a plugandplay instance. Creates a plugin system with support for hooks and plugin requirements.
+ *
+ * @typeParam T - The type of the arguments and return values of the hooks. An object representing the type of every hook arguments.
+ * @example
+ *
+ * Loose typing:
+ * ```typescript
+ * plugandplay();
+ * ```
+ *
+ * Specific typing:
+ * ```typescript
+ * plugandplay<{
+ *   "first-hook" : { bar: number; foo: string };
+ *   "second-hook" : { baz: object }
+ * }>();
+ * ```
+ * @param options - The options used to initiate the library.
+ * @param options.args - The arguments to pass to the registered plugins.
+ * @param options.chain - The chain of plugins to call the hooks on.
+ * @param options.parent - The parent plugin system to call the hooks on.
+ * @param options.plugins - The initial plugins to register.
+ * @returns - An object representing the plugin system.
+ */
 declare const plugandplay: <T extends Record<string, unknown> = Record<string, unknown>, Chain = undefined>({ args, chain, parent, plugins, }?: {
     args?: unknown[];
     chain?: Chain;
-    parent?: PlugAndPlay<T>;
+    parent?: Api<T>;
     plugins?: (Plugin<T> | (<FnArgs, T_1>(...Args: FnArgs[]) => Plugin<T_1>))[];
-}) => PlugAndPlay<T, Chain>;
+}) => Api<T, Chain>;
 export { plugandplay };
