@@ -8,6 +8,7 @@ describe("plugandplay.call_sync", function () {
       plugins.register({ hooks: { "my:hook": () => count++ } });
       plugins.call_sync({
         name: "my:hook",
+        args: undefined,
         handler: () => {},
       });
       count.should.eql(1);
@@ -58,9 +59,92 @@ describe("plugandplay.call_sync", function () {
       test.a_key?.should.eql("a value");
     });
   });
+  describe("alter result", function () {
+    it("sync", async function () {
+      await plugandplay()
+        .register({
+          hooks: {
+            "my:hook": (args, handler) => () => {
+              const res = handler(args, handler) as string[];
+              res.push("alter_1");
+              return res;
+            },
+          },
+        })
+        .register({
+          hooks: {
+            "my:hook": (args, handler) => () => {
+              const res = handler(args, handler) as string[];
+              res.push("alter_2");
+              return res;
+            },
+          },
+        })
+        .call_sync({
+          name: "my:hook",
+          args: ["origin"],
+          handler: (args) => args,
+        })
+        ?.should.eql(["origin", "alter_1", "alter_2"]);
+    });
+  });
 
-  describe("stop with null", function () {
-    it("when `null` is returned, sync mode", function () {
+  describe("flow", function () {
+    it("continue when `undefined` is returned", async function () {
+      const test: string[] = [];
+      await plugandplay<{
+        "my:hook": string[]
+      }>()
+        .register({
+          hooks: {
+            "my:hook": (args, handler) => {
+              args.push("hook 1", typeof handler);
+              return handler;
+            },
+          },
+        })
+        .register({
+          hooks: {
+            "my:hook": (args: string[], handler) => {
+              args.push("hook 2", typeof handler);
+              return undefined;
+            },
+          },
+        })
+        .register({
+          hooks: {
+            "my:hook": (args: string[], handler) => {
+              args.push("hook 3", typeof handler);
+              return handler;
+            },
+          },
+        })
+        .register({
+          hooks: {
+            "my:hook": (args: string[], handler) => {
+              args.push("hook 4", typeof handler);
+              return handler;
+            },
+          },
+        })
+        .call_sync({
+          name: "my:hook",
+          args: test,
+          handler: (args: string[]) => args.push("origin"),
+        });
+      test.should.eql([
+        "hook 1",
+        "function",
+        "hook 2",
+        "function",
+        "hook 3",
+        "undefined",
+        "hook 4",
+        "undefined",
+      ]);
+    });
+
+    it("stop when `null` is returned, sync mode", function () {
       type Test = string[];
       const test: Test = [];
       plugandplay<{
@@ -105,40 +189,6 @@ describe("plugandplay.call_sync", function () {
           handler: (test: string[]) => test.push("origin"),
         });
       test.should.eql(["hook 1", "hook 2"]);
-    });
-  });
-
-  describe("alter result", function () {
-    it("sync", function () {
-      const test = plugandplay()
-        .register({
-          hooks: {
-            "my:hook": (args, handler) => () => {
-              // TODO: handler argument is always defined if handler function length is 2
-              const res = handler?.call(null, args);
-              res.push("alter_1");
-              return res;
-            },
-          },
-        })
-        .register({
-          hooks: {
-            "my:hook": (args, handler) => () => {
-              // TODO: handler argument is always defined if handler function length is 2
-              const res = handler?.call(null, args);
-              res.push("alter_2");
-              return res;
-            },
-          },
-        })
-        .call_sync({
-          name: "my:hook",
-          args: ["origin"],
-          handler: (args) => {
-            return args;
-          },
-        }) as string[];
-      test.should.eql(["origin", "alter_1", "alter_2"]);
     });
   });
 });

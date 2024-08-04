@@ -7,10 +7,10 @@ import error from "./error.js";
 // interface Config {
 //   "test_2": {a_key_2: string}
 // }
-// type Toto<T> = {
+// type PnP<T> = {
 //   [N in keyof T]: T
 // };
-// const plugandplay = function <T extends Toto<Config> = Toto<Config>, Chain = undefined>({
+// const plugandplay = function <T extends PnP<Config> = PnP<Config>, Chain = undefined>({
 const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) {
     // Internal plugin store
     const store = [];
@@ -28,11 +28,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
             // Obtain plugin from user function
             plugin = typeof plugin === "function" ? plugin(...args) : plugin;
             // Hook normalization
-            // const hooksNormalized: Record<string, NormalizedPlugin<T, K>[]> = {}
             const hooksNormalized = {};
-            // for( const [name, hook] of Object.entries(plugin.hooks || []) ){
-            //   hooksNormalized[name] = normalize_hook(name, hook)
-            // }
             for (const name in plugin.hooks) {
                 if (!plugin.hooks[name])
                     continue;
@@ -42,8 +38,10 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
             if (plugin.require && !Array.isArray(plugin.require)) {
                 plugin.require = [plugin.require];
             }
-            const require = !plugin.require ? [] : !Array.isArray(plugin.require) ? [plugin.require] : plugin.require;
-            const requireNormalized = (require).map((require) => {
+            const require = !plugin.require ? []
+                : !Array.isArray(plugin.require) ? [plugin.require]
+                    : plugin.require;
+            const requireNormalized = require.map((require) => {
                 if (typeof require !== "string")
                     throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({
                         name: plugin.name,
@@ -71,7 +69,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
             }
             return false;
         },
-        get: function ({ name, hooks = [], sort = true }) {
+        get: function ({ name, hooks = [], sort = true, }) {
             const normalizedHooks = [
                 // Merge hooks provided by the user
                 ...normalize_hook(name, hooks),
@@ -115,8 +113,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                 if (hook.plugin)
                     index[hook.plugin] = hook;
             }
-            const edges_after = normalizedHooks
-                .map(function (hook) {
+            const edges_after = normalizedHooks.map(function (hook) {
                 return hook.after.reduce(function (result, after) {
                     if (index[after]) {
                         result.push([index[after], hook]);
@@ -131,8 +128,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                     return result;
                 }, []);
             });
-            const edges_before = normalizedHooks
-                .map(function (hook) {
+            const edges_before = normalizedHooks.map(function (hook) {
                 return hook.before.reduce(function (result, before) {
                     if (index[before]) {
                         result.push([hook, index[before]]);
@@ -151,7 +147,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
             return toposort.array(normalizedHooks, edges);
         },
         // Call a hook against each registered plugin matching the hook name
-        call: async function ({ args = [], handler, hooks = [], name }) {
+        call: async function ({ args, handler, hooks = [], name }) {
             if (arguments.length !== 1) {
                 throw error("PLUGINS_INVALID_ARGUMENTS_NUMBER", [
                     "function `call` expect 1 object argument,",
@@ -177,16 +173,26 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                 name: name,
             });
             // Call the hooks
+            handler = handler || (() => { });
             for (const hook of hooksNormalized) {
                 switch (hook.handler.length) {
                     case 0:
                     case 1:
-                        await hook.handler.call(this, args);
+                        await hook.handler(args, () => { });
                         break;
                     case 2:
-                        handler = await hook.handler.call(this, args, handler);
-                        if (handler === null) {
+                        const result = await hook.handler(args, handler);
+                        if (result === null) {
                             return null;
+                            // Note, this respect the implementation prior the TS migration
+                            // See test in call.ts # continue with `undefined` # when `undefined` is returned, sync mode
+                            // Not necessarily a good idea, shall be more strict on what the
+                            // hook handler might return
+                        }
+                        else {
+                            // }else if(result !== undefined) {
+                            // }else if (typeof result === 'function') {
+                            handler = result;
                         }
                         break;
                     default:
@@ -196,13 +202,11 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                         ]);
                 }
             }
-            if (handler) {
-                // Call the final handler
-                return handler.call(this, args);
-            }
+            // Call the final handler
+            return handler ? handler(args, () => { }) : undefined;
         },
         // Call a hook against each registered plugin matching the hook name
-        call_sync: function ({ args = [], handler, hooks = [], name }) {
+        call_sync: function ({ args, handler, hooks = [], name }) {
             if (arguments.length !== 1) {
                 throw error("PLUGINS_INVALID_ARGUMENTS_NUMBER", [
                     "function `call` expect 1 object argument,",
@@ -228,16 +232,26 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                 name: name,
             });
             // Call the hooks
+            handler = handler || (() => { });
             for (const hook of hooksNormalized) {
                 switch (hook.handler.length) {
                     case 0:
                     case 1:
-                        hook.handler.call(this, args);
+                        hook.handler(args, () => { });
                         break;
                     case 2:
-                        handler = hook.handler.call(this, args, handler);
-                        if (handler === null) {
+                        const result = hook.handler(args, handler);
+                        if (result === null) {
                             return null;
+                            // Note, this respect the implementation prior the TS migration
+                            // See test in call.ts # continue with `undefined` # when `undefined` is returned, sync mode
+                            // Not necessarily a good idea, shall be more strict on what the
+                            // hook handler might return
+                        }
+                        else {
+                            // }else if(result !== undefined) {
+                            // }else if (typeof result === 'function') {
+                            handler = result;
                         }
                         break;
                     default:
@@ -247,10 +261,8 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
                         ]);
                 }
             }
-            if (handler) {
-                // Call the final handler
-                return handler.call(this, args);
-            }
+            // Call the final handler
+            return handler ? handler(args, () => { }) : undefined;
         },
     };
     // Register initial plugins

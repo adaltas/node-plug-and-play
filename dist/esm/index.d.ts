@@ -5,7 +5,7 @@ export interface Hook<T> {
     name?: PropertyKey;
     handler: Handler<T>;
 }
-export interface NormalizedHook<T, K extends keyof T> {
+export interface HookNormalized<T, K extends keyof T> {
     after: string[];
     before: string[];
     name: K;
@@ -22,42 +22,36 @@ export interface Plugin<T> {
 }
 export interface PluginNormalized<T> {
     hooks: {
-        [Name in keyof T]: NormalizedHook<T, Name>[];
+        [Name in keyof T]: HookNormalized<T, Name>[];
     };
     name: PropertyKey | undefined;
     require: string[];
 }
-interface RegistryCallParams<T, K extends keyof T> {
-    args?: T[K];
-    handler?: Handler<T[K]>;
-    hooks?: Hook<T[K]>[];
-    name: K;
-}
-type RegistryCall<T> = <K extends keyof T>(args: RegistryCallParams<T, K>) => Promise<unknown>;
-type RegistryCallSync<T> = <K extends keyof T>(args: {
-    args?: T[K];
-    handler?: Handler<T[K]>;
-    hooks?: Hook<T[K]>[];
-    name: K;
-}) => unknown;
-interface RegistryGetParams<T, K extends keyof T> {
-    name: K;
-    hooks?: Handler<T[K]> | Hook<T[K]> | Hook<T[K]>[];
-    sort?: boolean;
-}
-type RegistryGet<T> = <K extends keyof T>(args: RegistryGetParams<T, K>) => NormalizedHook<T, K>[];
-type RegistryRegister<T, Chain> = (plugin: Plugin<T> | ((...Args: unknown[]) => Plugin<T>)) => Registry<T, Chain> | NonNullable<Chain>;
-export interface Registry<T, Chain = undefined> {
-    call: RegistryCall<T>;
-    call_sync: RegistryCallSync<T>;
-    get: RegistryGet<T>;
-    register: RegistryRegister<T, Chain>;
+export interface PlugAndPlay<T, Chain = undefined> {
+    call: <K extends keyof T>(options: {
+        args: T[K];
+        handler?: Handler<T[K]>;
+        hooks?: Hook<T[K]>[];
+        name: K;
+    }) => Promise<unknown>;
+    call_sync: <K extends keyof T>(args: {
+        args: T[K];
+        handler?: Handler<T[K]>;
+        hooks?: Hook<T[K]>[];
+        name: K;
+    }) => unknown;
+    get: <K extends keyof T>(args: {
+        name: K;
+        hooks?: Handler<T[K]> | Hook<T[K]> | Hook<T[K]>[];
+        sort?: boolean;
+    }) => HookNormalized<T, K>[];
+    register: (plugin: Plugin<T> | ((...Args: unknown[]) => Plugin<T>)) => PlugAndPlay<T, Chain> | NonNullable<Chain>;
     registered: (name: PropertyKey) => boolean;
 }
 declare const plugandplay: <T extends Record<string, unknown> = Record<string, unknown>, Chain = undefined>({ args, chain, parent, plugins, }?: {
     args?: unknown[];
     chain?: Chain;
-    parent?: Registry<T>;
+    parent?: PlugAndPlay<T>;
     plugins?: (Plugin<T> | (<FnArgs, T_1>(...Args: FnArgs[]) => Plugin<T_1>))[];
-}) => Registry<T, Chain>;
+}) => PlugAndPlay<T, Chain>;
 export { plugandplay };

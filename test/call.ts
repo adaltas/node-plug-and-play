@@ -4,10 +4,13 @@ describe("plugandplay.call", function () {
   describe("api", function () {
     it("no aguments", async function () {
       let count = 0;
-      await plugandplay()
+      await plugandplay<{
+        "my:hook": undefined
+      }>()
         .register({ hooks: { "my:hook": () => count++ } })
         .call({
           name: "my:hook",
+          args: undefined, // TODO, get rid of args when undefined
           handler: () => {},
         });
       count.should.eql(1);
@@ -16,12 +19,13 @@ describe("plugandplay.call", function () {
 
   describe("property `args`", function () {
     it("is passed to handlers", async function () {
-      type Args = Record<"a_key", string>
-      const stack: Args[] = [];
-      await plugandplay({
+      const stack: { a_key: string}[] = [];
+      await plugandplay<{
+        "my:hook": { a_key: string}
+      }>({
         plugins: [
           {
-            hooks: { "my:hook": (args: Args) => stack.push(args) },
+            hooks: { "my:hook": (args) => stack.push(args) && undefined },
           },
           {
             hooks: {
@@ -176,8 +180,7 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => () => {
-              // TODO: handler argument is always defined if handler function length is 2
-              const res = handler?.call(null, args, handler);
+              const res = handler.call(null, args, handler) as string[];
               res.push("alter_1");
               return res;
             },
@@ -186,8 +189,7 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => () => {
-              // TODO: handler argument is always defined if handler function length is 2
-              const res = handler?.call(null, args, handler);
+              const res = handler.call(null, args, handler) as string[];
               res.push("alter_2");
               return res;
             },
@@ -206,8 +208,7 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => async () => {
-              // TODO: handler argument is always defined if handler function length is 2
-              const res = await handler?.call(null, args);
+              const res = await handler(args, () => {}) as string[];
               res.push("alter_1");
               await new Promise((resolve) => setImmediate(resolve));
               return res;
@@ -217,8 +218,7 @@ describe("plugandplay.call", function () {
         .register({
           hooks: {
             "my:hook": (args, handler) => async () => {
-              // TODO: handler argument is always defined if handler function length is 2
-              const res = await handler?.call(null, args);
+              const res = await handler(args, () => {}) as string[];
               res.push("alter_2");
               await new Promise((resolve) => setImmediate(resolve));
               return res;
@@ -234,8 +234,8 @@ describe("plugandplay.call", function () {
     });
   });
 
-  describe("continue with `undefined`", function () {
-    it("when `undefined` is returned, sync mode", async function () {
+  describe("flow", function () {
+    it("continue when `undefined` is returned (sync handler)", async function () {
       const test: string[] = [];
       await plugandplay<{
         "my:hook": string[]
@@ -288,10 +288,8 @@ describe("plugandplay.call", function () {
         "undefined",
       ]);
     });
-  });
-
-  describe("stop with `null`", function () {
-    it("when `null` is returned, sync mode", async function () {
+    
+    it("stop when `null` is returned (sync handler)", async function () {
       const test: string[] = [];
       await plugandplay<{
         "my:hook": string[]
@@ -337,7 +335,7 @@ describe("plugandplay.call", function () {
       test.should.eql(["hook 1", "hook 2"]);
     });
 
-    it("when `null` is fulfilled, async mode", async function () {
+    it("stop when `null` is fulfilled (async handler)", async function () {
       const test: string[] = [];
       await plugandplay<{
         "my:hook": string[]

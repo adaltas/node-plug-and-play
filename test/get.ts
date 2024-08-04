@@ -8,12 +8,12 @@ describe("plugandplay.get", function () {
         .register({ hooks: { "my:hook": () => 2 } })
         .register({ hooks: { "another:hook": () => 2 } })
         .get({ name: "my:hook" })
-        .map((hook) => hook.handler.call(undefined))
+        .map((hook) => hook.handler(undefined, () => {}))
         .should.eql([1, 2]);
     });
 
     it("normalize default", function () {
-      const p = plugandplay().register({
+      const pnp = plugandplay().register({
         name: "module/origin",
         hooks: {
           "my:hook:function": () => {},
@@ -22,7 +22,7 @@ describe("plugandplay.get", function () {
           },
         },
       });
-      p.get({ name: "my:hook:function" }).should.eql([
+      pnp.get({ name: "my:hook:function" }).should.eql([
         {
           after: [],
           before: [],
@@ -32,7 +32,7 @@ describe("plugandplay.get", function () {
           handler: () => {},
         },
       ]);
-      p.get({ name: "my:hook:property" }).should.eql([
+      pnp.get({ name: "my:hook:property" }).should.eql([
         {
           after: [],
           before: [],

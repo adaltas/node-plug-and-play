@@ -12,7 +12,7 @@ describe("option.parent", function () {
       .register({ hooks: { "my:hook": () => 1 } })
       .register({ hooks: { "my:hook": () => 2 } })
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call(undefined))
+      .map((hook) => hook.handler({}, () => {}))
       .should.eql([1, 2, 3]);
   });
 });

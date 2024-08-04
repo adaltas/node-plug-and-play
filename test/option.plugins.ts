@@ -13,7 +13,7 @@ describe("plugandplay.option.plugin", function () {
       ],
     })
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call(undefined))
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([1, 2]);
   });
 
@@ -25,7 +25,7 @@ describe("plugandplay.option.plugin", function () {
       ],
     })
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call(undefined))
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([1, 2]);
   });
 });

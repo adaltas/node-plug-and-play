@@ -2,26 +2,12 @@ import { is_object_literal, is_object } from "mixme";
 import toposort from "toposort";
 import error from "./error.js";
 
+// TODO: both args and handler are optional by nature
 export type Handler<T> = (
   args: T,
   handler: Handler<T>,
 ) => unknown | void | PromiseLike<unknown> | Handler<T>; // TODO
 
-// Handler<{a_key: string}>
-
-// T = {a_key: string}
-
-// (test: {a_key: string}) => void
-
-// export type Handler<T> = (() => unknown | void | PromiseLike<unknown>) &
-//   ((args: T) => unknown | void | PromiseLike<unknown>);
-
-// export type Handler<T> = 
-//   ((args: T, handler: Handler<T>) => unknown | void | PromiseLike<unknown>);
-
-// export type Handler<T> = {
-//   (): unknown | void | PromiseLike<unknown>;
-// }
 // export type Handler<T> = {
 //   (): unknown | void | PromiseLike<unknown>;
 //   (args: T): unknown | void | PromiseLike<unknown>;
@@ -35,7 +21,7 @@ export interface Hook<T> {
   handler: Handler<T>;
 }
 
-export interface NormalizedHook<T, K extends keyof T> {
+export interface HookNormalized<T, K extends keyof T> {
   after: string[];
   before: string[];
   name: K;
@@ -54,48 +40,37 @@ export interface Plugin<T> {
 
 export interface PluginNormalized<T> {
   hooks: {
-    [Name in keyof T]: NormalizedHook<T, Name>[];
+    [Name in keyof T]: HookNormalized<T, Name>[];
   };
   name: PropertyKey | undefined;
   require: string[];
 }
 
-interface RegistryCallParams <T,K extends keyof T> {
-  args?: T[K];
-  handler?: Handler<T[K]>;
-  hooks?: Hook<T[K]>[];
-  name: K;
-}
-
-type RegistryCall<T> = <K extends keyof T>(args: RegistryCallParams<T,K>) => Promise<unknown>;
-
-type RegistryCallSync<T> = <K extends keyof T>(args: {
-  args?: T[K];
-  handler?: Handler<T[K]>;
-  hooks?: Hook<T[K]>[];
-  name: K;
-}) => unknown
-
-interface RegistryGetParams <T, K extends keyof T> {
-  name: K;
-  hooks?: Handler<T[K]> | Hook<T[K]> | Hook<T[K]>[];
-  sort?: boolean;
-}
-
-type RegistryGet<T> = <K extends keyof T>(args: RegistryGetParams<T,K>) => NormalizedHook<T, K>[]
-
-type RegistryRegister<T, Chain> = (
-  plugin: Plugin<T> | ((...Args: unknown[]) => Plugin<T>),
-) => Registry<T, Chain> | NonNullable<Chain>;
-
-export interface Registry<T, Chain = undefined> {
-  call: RegistryCall<T>;
-  call_sync: RegistryCallSync<T>;
-  get: RegistryGet<T>;
-  register: RegistryRegister<T,Chain>;
+export interface PlugAndPlay<T, Chain = undefined> {
+  call: <K extends keyof T>(options: {
+    args: T[K];
+    handler?: Handler<T[K]>;
+    hooks?: Hook<T[K]>[];
+    name: K;
+  }) => Promise<unknown>;
+  call_sync: <K extends keyof T>(args: {
+    args: T[K];
+    handler?: Handler<T[K]>;
+    hooks?: Hook<T[K]>[];
+    name: K;
+  }) => unknown;
+  get: <K extends keyof T>(
+    args: {
+      name: K;
+      hooks?: Handler<T[K]> | Hook<T[K]> | Hook<T[K]>[];
+      sort?: boolean;
+    },
+  ) => HookNormalized<T, K>[];
+  register: (
+    plugin: Plugin<T> | ((...Args: unknown[]) => Plugin<T>),
+  ) => PlugAndPlay<T, Chain> | NonNullable<Chain>;
   registered: (name: PropertyKey) => boolean;
 }
-
 
 // interface Config {
 //   "test_1": {key_1: string}
@@ -103,14 +78,15 @@ export interface Registry<T, Chain = undefined> {
 // interface Config {
 //   "test_2": {a_key_2: string}
 // }
-
-// type Toto<T> = {
+// type PnP<T> = {
 //   [N in keyof T]: T
 // };
+// const plugandplay = function <T extends PnP<Config> = PnP<Config>, Chain = undefined>({
 
-// const plugandplay = function <T extends Toto<Config> = Toto<Config>, Chain = undefined>({
-
-const plugandplay = function <T extends Record<string, unknown> = Record<string, unknown>, Chain = undefined>({
+const plugandplay = function <
+  T extends Record<string, unknown> = Record<string, unknown>,
+  Chain = undefined,
+>({
   args = [],
   chain,
   parent,
@@ -118,16 +94,13 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
 }: {
   args?: unknown[];
   chain?: Chain;
-  parent?: Registry<T>;
-  plugins?: (
-    | Plugin<T>
-    | (<FnArgs, T>(...Args: FnArgs[]) => Plugin<T>)
-  )[];
-} = {}): Registry<T, Chain> {
+  parent?: PlugAndPlay<T>;
+  plugins?: (Plugin<T> | (<FnArgs, T>(...Args: FnArgs[]) => Plugin<T>))[];
+} = {}): PlugAndPlay<T, Chain> {
   // Internal plugin store
   const store: PluginNormalized<T>[] = [];
   // Public API definition
-  const registry: Registry<T, Chain> = {
+  const registry: PlugAndPlay<T, Chain> = {
     // Register new plugins
     register: function (plugin) {
       if (typeof plugin !== "function" && !is_object_literal(plugin)) {
@@ -140,28 +113,27 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
       // Obtain plugin from user function
       plugin = typeof plugin === "function" ? plugin(...args) : plugin;
       // Hook normalization
-      // const hooksNormalized: Record<string, NormalizedPlugin<T, K>[]> = {}
-      const hooksNormalized = {} as PluginNormalized<T>['hooks'];
-      // for( const [name, hook] of Object.entries(plugin.hooks || []) ){
-      //   hooksNormalized[name] = normalize_hook(name, hook)
-      // }
-      for( const name in plugin.hooks ){
-        if (!plugin.hooks[name]) continue
-        hooksNormalized[name] = normalize_hook(name, plugin.hooks[name])
+      const hooksNormalized = {} as PluginNormalized<T>["hooks"];
+      for (const name in plugin.hooks) {
+        if (!plugin.hooks[name]) continue;
+        hooksNormalized[name] = normalize_hook(name, plugin.hooks[name]);
       }
       // Require normalization
       if (plugin.require && !Array.isArray(plugin.require)) {
         plugin.require = [plugin.require];
       }
-      const require = !plugin.require ? [] : !Array.isArray(plugin.require) ? [plugin.require] : plugin.require
-      const requireNormalized: string[] = (require).map((require) => {
+      const require =
+        !plugin.require ? []
+        : !Array.isArray(plugin.require) ? [plugin.require]
+        : plugin.require;
+      const requireNormalized: string[] = require.map((require) => {
         if (typeof require !== "string")
           throw errors.PLUGINS_REGISTER_INVALID_REQUIRE({
             name: plugin.name,
             require: require,
           });
-        return require
-      })
+        return require;
+      });
       // Plugin normalization
       const normalizedPlugin: PluginNormalized<T> = {
         hooks: hooksNormalized,
@@ -182,7 +154,11 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
       }
       return false;
     },
-    get: function <K extends keyof T> ({ name, hooks = [], sort = true }: RegistryGetParams<T, K>) {
+    get: function ({
+      name,
+      hooks = [],
+      sort = true,
+    }) {
       const normalizedHooks = [
         // Merge hooks provided by the user
         ...normalize_hook(name, hooks),
@@ -206,7 +182,7 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
                   plugin: plugin.name,
                   require: plugin.require,
                   ...hook,
-                }) as NormalizedHook<T, K>,
+                }) as HookNormalized<T, typeof name>,
             );
           })
           .filter(function (hook) {
@@ -223,46 +199,44 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
       // About PLUGINS_HOOK_[AFTER|BEFORE]_INVALID error:
       // It is ok for a hook to refer to a non-registered and optional plugin
       // However, if the plugin exists, then it must expose a hook of the same name.
-      const index: Record<string, NormalizedHook<T,K>> = {};
+      const index: Record<string, HookNormalized<T, typeof name>> = {};
       for (const hook of normalizedHooks) {
         if (hook.plugin) index[hook.plugin] = hook;
       }
-      type Test = [NormalizedHook<T,K>, NormalizedHook<T,K>][];
-      const edges_after = normalizedHooks
-        .map(function (hook) {
-          return hook.after.reduce<Test>(function (result, after) {
-            if (index[after]) {
-              result.push([index[after], hook]);
-            } else if (registry.registered(after)) {
-              throw errors.PLUGINS_HOOK_AFTER_INVALID({
-                name: name,
-                plugin: hook.plugin,
-                after: after,
-              });
-            }
-            return result;
-          }, []);
-        });
-      const edges_before = normalizedHooks
-        .map(function (hook) {
-          return hook.before.reduce<Test>(function (result, before) {
-            if (index[before]) {
-              result.push([hook, index[before]]);
-            } else if (registry.registered(before)) {
-              throw errors.PLUGINS_HOOK_BEFORE_INVALID({
-                name: name,
-                plugin: hook.plugin,
-                before: before,
-              });
-            }
-            return result;
-          }, []);
-        });
+      type Test = [HookNormalized<T, typeof name>, HookNormalized<T, typeof name>][];
+      const edges_after = normalizedHooks.map(function (hook) {
+        return hook.after.reduce<Test>(function (result, after) {
+          if (index[after]) {
+            result.push([index[after], hook]);
+          } else if (registry.registered(after)) {
+            throw errors.PLUGINS_HOOK_AFTER_INVALID({
+              name: name,
+              plugin: hook.plugin,
+              after: after,
+            });
+          }
+          return result;
+        }, []);
+      });
+      const edges_before = normalizedHooks.map(function (hook) {
+        return hook.before.reduce<Test>(function (result, before) {
+          if (index[before]) {
+            result.push([hook, index[before]]);
+          } else if (registry.registered(before)) {
+            throw errors.PLUGINS_HOOK_BEFORE_INVALID({
+              name: name,
+              plugin: hook.plugin,
+              before: before,
+            });
+          }
+          return result;
+        }, []);
+      });
       const edges = [...edges_after, ...edges_before].flat(1);
       return toposort.array(normalizedHooks, edges);
     },
     // Call a hook against each registered plugin matching the hook name
-    call: async function ({ args = [], handler, hooks = [], name }) {
+    call: async function ({ args, handler, hooks = [], name }) {
       if (arguments.length !== 1) {
         throw error("PLUGINS_INVALID_ARGUMENTS_NUMBER", [
           "function `call` expect 1 object argument,",
@@ -286,16 +260,25 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
         name: name,
       });
       // Call the hooks
+      handler = handler || (() => {});
       for (const hook of hooksNormalized) {
         switch (hook.handler.length) {
           case 0:
           case 1:
-            await hook.handler.call(this, args);
+            await hook.handler(args, () => {});
             break;
           case 2:
-            handler = await hook.handler.call(this, args, handler);
-            if (handler === null) {
+            const result = await hook.handler(args, handler);
+            if (result === null) {
               return null;
+              // Note, this respect the implementation prior the TS migration
+              // See test in call.ts # continue with `undefined` # when `undefined` is returned, sync mode
+              // Not necessarily a good idea, shall be more strict on what the
+              // hook handler might return
+            } else {
+              // }else if(result !== undefined) {
+              // }else if (typeof result === 'function') {
+              handler = result as Handler<T[typeof hook.name]>;
             }
             break;
           default:
@@ -305,13 +288,11 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
             ]);
         }
       }
-      if (handler) {
-        // Call the final handler
-        return handler.call(this, args);
-      }
+      // Call the final handler
+      return handler ? handler(args, () => {}) : undefined;
     },
     // Call a hook against each registered plugin matching the hook name
-    call_sync: function ({ args = [], handler, hooks = [], name }) {
+    call_sync: function ({ args, handler, hooks = [], name }) {
       if (arguments.length !== 1) {
         throw error("PLUGINS_INVALID_ARGUMENTS_NUMBER", [
           "function `call` expect 1 object argument,",
@@ -335,16 +316,25 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
         name: name,
       });
       // Call the hooks
+      handler = handler || (() => {});
       for (const hook of hooksNormalized) {
         switch (hook.handler.length) {
           case 0:
           case 1:
-            hook.handler.call(this, args);
+            hook.handler(args, () => {});
             break;
           case 2:
-            handler = hook.handler.call(this, args, handler);
-            if (handler === null) {
+            const result = hook.handler(args, handler);
+            if (result === null) {
               return null;
+              // Note, this respect the implementation prior the TS migration
+              // See test in call.ts # continue with `undefined` # when `undefined` is returned, sync mode
+              // Not necessarily a good idea, shall be more strict on what the
+              // hook handler might return
+            } else {
+              // }else if(result !== undefined) {
+              // }else if (typeof result === 'function') {
+              handler = result as Handler<T[typeof hook.name]>;
             }
             break;
           default:
@@ -354,10 +344,8 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
             ]);
         }
       }
-      if (handler) {
-        // Call the final handler
-        return handler.call(this, args);
-      }
+      // Call the final handler
+      return handler ? handler(args, () => {}) : undefined;
     },
   };
   // Register initial plugins
@@ -370,13 +358,13 @@ const plugandplay = function <T extends Record<string, unknown> = Record<string,
 
 type NormalizeHook = <T, K extends keyof T>(
   name: K,
-  hook: Hook<T[K]> | Hook<T[K]>[] | Handler<T[K]>
-) => NormalizedHook<T, K>[];
+  hook: Hook<T[K]> | Hook<T[K]>[] | Handler<T[K]>,
+) => HookNormalized<T, K>[];
 
 const normalize_hook: NormalizeHook = function <T, K extends keyof T>(
   name: K,
-  hook: Handler<T[K]> | Hook<T[K]> | Hook<T[K]>[]
-): NormalizedHook<T,K>[] {
+  hook: Handler<T[K]> | Hook<T[K]> | Hook<T[K]>[],
+): HookNormalized<T, K>[] {
   const hooks = Array.isArray(hook) ? hook : [hook];
   return hooks.map(function (hook) {
     if (typeof hook !== "function" && !is_object(hook)) {

@@ -12,7 +12,7 @@ describe("option.args", function () {
     })
       // Test the registered hooks
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call(undefined))
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([["a", "b"]]);
   });
 
@@ -25,7 +25,7 @@ describe("option.args", function () {
       }))
       // Test the registered hooks
       .get({ name: "my:hook" })
-      .map((hook) => hook.handler.call(undefined))
+      .map((hook) => hook.handler(undefined, () => {}))
       .should.eql([["a", "b"]]);
   });
 });
