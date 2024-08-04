@@ -7,6 +7,9 @@
     "strict": true,                  /* Enable all strict type-checking options. */
     "sourceMap": true,
   },
+  "ts-node": {
+    "esm": true, /* ... Line to be added ... */
+  },
   "references": [
     { "path": "./tsconfig.samples.json" },
     { "path": "./tsconfig.src.json" },
