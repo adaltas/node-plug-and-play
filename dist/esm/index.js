@@ -1,16 +1,32 @@
 import { is_object_literal, is_object } from "mixme";
 import toposort from "toposort";
 import error from "./error.js";
-// interface Config {
-//   "test_1": {key_1: string}
-// }
-// interface Config {
-//   "test_2": {a_key_2: string}
-// }
-// type PnP<T> = {
-//   [N in keyof T]: T
-// };
-// const plugandplay = function <T extends PnP<Config> = PnP<Config>, Chain = undefined>({
+
+/**
+ * A function to initialize a plugandplay instance. Creates a plugin system with support for hooks and plugin requirements.
+ *
+ * @typeParam T - The type of the arguments and return values of the hooks. An object representing the type of every hook arguments.
+ * @example
+ *
+ * Loose typing:
+ * ```typescript
+ * plugandplay();
+ * ```
+ *
+ * Specific typing:
+ * ```typescript
+ * plugandplay<{
+ *   "first-hook" : { bar: number; foo: string };
+ *   "second-hook" : { baz: object }
+ * }>();
+ * ```
+ * @param options - The options used to initiate the library.
+ * @param options.args - The arguments to pass to the registered plugins.
+ * @param options.chain - The chain of plugins to call the hooks on.
+ * @param options.parent - The parent plugin system to call the hooks on.
+ * @param options.plugins - The initial plugins to register.
+ * @returns - An object representing the plugin system.
+ */
 const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) {
     // Internal plugin store
     const store = [];
@@ -69,7 +85,7 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
             }
             return false;
         },
-        get: function ({ name, hooks = [], sort = true, }) {
+        get: function ({ name, hooks = [], sort = true }) {
             const normalizedHooks = [
                 // Merge hooks provided by the user
                 ...normalize_hook(name, hooks),
@@ -272,6 +288,16 @@ const plugandplay = function ({ args = [], chain, parent, plugins = [], } = {}) 
     // return the object
     return api;
 };
+/**
+ * Normalize a hook definition to a standardized format.
+ *
+ * @typeParam T - Type of parameters expected by hook handlers.
+ *
+ * @param name - Name of the hook.
+ * @param hook - User-defined hook definition.
+ *
+ * @returns An array of standardized hook definitions.
+ */
 const normalize_hook = function (name, hook) {
     const hooks = Array.isArray(hook) ? hook : [hook];
     return hooks.map(function (hook) {

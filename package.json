@@ -32,6 +32,8 @@
     "standard-version": "^9.5.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.16.5",
+    "typedoc": "^0.26.5",
+    "typedoc-plugin-markdown": "^4.2.3",
     "typescript": "^5.5.4"
   },
   "exports": {
@@ -80,6 +82,8 @@
   },
   "scripts": {
     "_build": "npx rollup -c",
+    "docs:html": "typedoc --tsconfig tsconfig.src.json --readme none --out docs/types/html src/index.ts",
+    "docs:md": "typedoc --tsconfig tsconfig.src.json --plugin typedoc-plugin-markdown --readme none --out docs/types/md src/index.ts",
     "build": "tsc --build --clean && tsc --project tsconfig.src.json",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
