@@ -33,7 +33,7 @@ Here is the documentation:
 
 ## Quick example
 
-Library and application authors define hooks, see [`./sample/lib.js`](https://github.com/adaltas/node-plug-and-play/blob/master/sample/lib.js):
+Library and application authors define hooks, see [`./samples/simple-js/lib.js`](https://github.com/adaltas/node-plug-and-play/blob/master/samples/simple-js/lib.js):
 
 ```js
 const plugandplay = require("plug-and-play");
@@ -63,7 +63,7 @@ module.exports = {
 };
 ```
 
-Users and pluging authors can now register their own hooks, see [`./sample/index.js`](https://github.com/adaltas/node-plug-and-play/blob/master/sample/error.js):
+Users and pluging authors can now register their own hooks, see [`./samples/simple-js/index.js`](https://github.com/adaltas/node-plug-and-play/blob/master/samples/simple-js/index.js):
 
 ```js
 const mysuperlibrary = require("./lib");

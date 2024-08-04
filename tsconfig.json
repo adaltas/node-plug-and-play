@@ -8,6 +8,7 @@
     "sourceMap": true,
   },
   "references": [
+    { "path": "./tsconfig.samples.json" },
     { "path": "./tsconfig.src.json" },
     { "path": "./tsconfig.test.json" }
   ]
