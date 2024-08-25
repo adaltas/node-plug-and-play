@@ -1,5 +1,5 @@
 import { is_object_literal, is_object } from "mixme";
-import toposort from "toposort";
+import * as toposort from "toposort";
 import error from "./error.js";
 
 /**

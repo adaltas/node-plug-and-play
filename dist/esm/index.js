@@ -1,5 +1,5 @@
 import { is_object_literal, is_object } from "mixme";
-import toposort from "toposort";
+import * as toposort from "toposort";
 import error from "./error.js";
 /**
  * A function to initialize a plugandplay instance. Creates a plugin system with support for hooks and plugin requirements.
