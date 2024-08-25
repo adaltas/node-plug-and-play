@@ -1,9 +1,4 @@
-declare class PlugableError extends Error {
-    code: string;
-    [index: string]: unknown;
-    constructor(code: string, message: string | (string | object)[], ...contexts: Record<string, unknown>[]);
-}
-
+export { PlugableError } from "./error.js";
 /**
  * Represents a handler function for a hook.
  *
@@ -17,7 +12,7 @@ declare class PlugableError extends Error {
  * Both args and handler are optional by nature.
  * Differentiate the hook handlers from the user handlers
  */
-type Handler<T> = (args: T, handler: Handler<T>) => unknown | void | PromiseLike<unknown> | Handler<T>;
+export type Handler<T> = (args: T, handler: Handler<T>) => unknown | void | PromiseLike<unknown> | Handler<T>;
 /**
  * Represents a hook in the Plug-and-Play system.
  *
@@ -27,7 +22,7 @@ type Handler<T> = (args: T, handler: Handler<T>) => unknown | void | PromiseLike
  * @property handler - The hook handler to be executed.
  * @property name - Name to identify the hook.
  */
-interface Hook<T> {
+export interface Hook<T> {
     after?: string | string[];
     before?: string | string[];
     handler: Handler<T>;
@@ -45,7 +40,7 @@ interface Hook<T> {
  * @property plugin - The name of the plugin that defines this hook.
  * @property require - An array of plugin names that this plugin requires.
  */
-interface HookNormalized<T, K extends keyof T> {
+export interface HookNormalized<T, K extends keyof T> {
     after: string[];
     before: string[];
     handler: Handler<T[K]>;
@@ -61,7 +56,7 @@ interface HookNormalized<T, K extends keyof T> {
  * @property name - Name identifying the plugin by other plugin with the `after`, `before` and `require` properties.
  * @property require - Names of the required plugins. If a required plugin is not registered, an error is thrown when the plugin is registered.
  */
-interface Plugin<T> {
+export interface Plugin<T> {
     hooks: {
         [Name in keyof T]?: Hook<T[Name]>[] | Hook<T[Name]> | Handler<T[Name]>;
     };
@@ -76,7 +71,7 @@ interface Plugin<T> {
  * @property name - Name identifying the plugin by other plugin with the `after`, `before` and `require` properties.
  * @property require - Names of the required plugins. If a required plugin is not registered, an error is thrown when the plugin is registered.
  */
-interface PluginNormalized<T> {
+export interface PluginNormalized<T> {
     hooks: {
         [Name in keyof T]: HookNormalized<T, Name>[];
     };
@@ -88,7 +83,7 @@ interface PluginNormalized<T> {
  *
  * @typeParam T - The type of the arguments and return values of the hooks.
  */
-interface Api<T, Chain = undefined> {
+export interface Api<T, Chain = undefined> {
     /**
      * Execute a handler function and its associated hooks.
      *
@@ -184,5 +179,4 @@ declare const plugandplay: <T extends Record<string, unknown> = Record<string, u
     parent?: Api<T, Chain>;
     plugins?: (Plugin<T> | (<FnArgs, T_1>(...Args: FnArgs[]) => Plugin<T_1>))[];
 }) => Api<T, Chain>;
-
-export { type Api, type Handler, type Hook, type HookNormalized, PlugableError, type Plugin, type PluginNormalized, plugandplay };
+export { plugandplay };

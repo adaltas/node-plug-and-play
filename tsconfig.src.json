@@ -4,7 +4,7 @@
   "include": ["./src/**/*.ts"],
   "compilerOptions": {
     "composite": true,
-    "outDir": "./dist/esm",
+    "outDir": "./dist/types",
     "rootDir": "./src",
   }
 }
