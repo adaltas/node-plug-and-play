@@ -40,10 +40,11 @@
     "typedoc-plugin-markdown": "^4.2.3",
     "typescript": "^5.5.4"
   },
+  "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "types": "./dist/esm/index.d.js",
+      "types": "./dist/types/index.d.ts",
       "require": "./dist/cjs/index.cjs"
     }
   },
