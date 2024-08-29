@@ -1,7 +1,7 @@
 import { is_object_literal, is_object } from "mixme";
 import * as toposort from "toposort";
-import error from "./error.js";
-export { PlugableError } from "./error.js";
+import error from "./error";
+export { PlugableError } from "./error";
 
 /**
  * Represents a handler function for a hook.
