@@ -86,13 +86,9 @@
     "url": "git+https://github.com/adaltas/node-plug-and-play.git"
   },
   "scripts": {
-    "_build": "npx rollup -c",
     "docs:html": "typedoc --tsconfig tsconfig.src.json --readme none --out docs/types/html src/index.ts",
     "docs:md": "typedoc --tsconfig tsconfig.src.json --plugin typedoc-plugin-markdown --readme none --out docs/types/md src/index.ts",
-    "build": "npm run build:clean && npm run build:types && npm run build:js",
-    "build:clean": "tsc --build --clean",
-    "build:types": "tsc --emitDeclarationOnly --project tsconfig.src.json",
-    "build:js": "npx rollup -c rollup.config.js",
+    "build": "npx rollup -c",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "lint:staged": "npx lint-staged",
