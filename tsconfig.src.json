@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "references": [],
-  "include": ["./src/**/*.ts"],
+  "include": [
+    "./src/**/*.ts"
+  ],
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist/types",
