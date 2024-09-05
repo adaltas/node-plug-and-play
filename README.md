@@ -6,15 +6,15 @@ Easily create hooks and let users plug their own logic across your code to make 
 
 ## Main features
 
-- Extention points definition  
+- Extention points definition
   Simple to declare new extention points, yet a lot of flexibility to the plugin authors.
-- Hook definition  
+- Hook definition
   Plugin writer can intercept calls to a function by placing their own logicl before, after and even switching the default implementation.
-- Dependency management  
+- Dependency management
   Plugins can require other plugins as required dependencies as well as choose the order of execution of each hook.
-- Promise support  
+- Promise support
   Hook can be synchronous and asynchronous when returning a promise.
-- Nested/hierachical  
+- Nested/hierachical
   Instanciate plugin instances with a parent reference and parent hooks will also be available inside the children.
 
 ## Learning
@@ -93,3 +93,18 @@ While the original `print` function was only printing `Hello` to stdout, the int
 Hello world
 <<<<<<<<<<<
 ```
+
+## Available examples
+
+- [simple-js](./samples/simple-js) JavaScript basic example.
+  ```bash
+  ./samples/simple-js/index.js
+  ```
+- [simple-ts](./samples/simple-ts) TypeScript basic example.
+  ```bash
+  ./samples/simple-ts/index.ts ping
+  ```
+- [advanced-ts](./samples/advanced-ts) TypeScript advanced examples with plugin type registration.
+  ```bash
+  ./samples/advanced-ts/index.ts ping pong
+  ```

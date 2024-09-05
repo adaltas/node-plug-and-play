@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { plugins, print } from "./lib.js";
 
 plugins.register({
