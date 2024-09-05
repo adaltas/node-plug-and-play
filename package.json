@@ -5,6 +5,9 @@
   "bugs": {
     "url": "https://github.com/adaltas/node-plug-and-play/issues"
   },
+  "contributors": [
+    "lucas demea <lucas@digital-swing.com>"
+  ],
   "dependencies": {
     "mixme": "^1.1.0",
     "toposort": "^2.0.2"
@@ -14,8 +17,8 @@
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
     "@eslint/js": "^9.8.0",
-    "@rollup/plugin-eslint": "^9.0.5",
-    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
     "@types/mocha": "^10.0.7",
     "@types/should": "^11.2.0",
     "@types/toposort": "^2.0.7",
@@ -29,6 +32,9 @@
     "mocha": "10.7.0",
     "prettier": "^3.3.3",
     "rollup": "^4.19.1",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-typescript2": "^0.36.0",
     "should": "~13.2.3",
     "standard-version": "^9.5.0",
     "ts-node": "^10.9.2",
@@ -40,7 +46,7 @@
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "types": "./dist/esm/index.d.js",
+      "types": "./dist/types/index.d.ts",
       "require": "./dist/cjs/index.cjs"
     }
   },
@@ -82,10 +88,10 @@
     "url": "git+https://github.com/adaltas/node-plug-and-play.git"
   },
   "scripts": {
-    "_build": "npx rollup -c",
+    "docs": "npm run docs:html && npm run docs:md",
     "docs:html": "typedoc --tsconfig tsconfig.src.json --readme none --out docs/types/html src/index.ts",
     "docs:md": "typedoc --tsconfig tsconfig.src.json --plugin typedoc-plugin-markdown --readme none --out docs/types/md src/index.ts",
-    "build": "tsc --build --clean && tsc --project tsconfig.src.json",
+    "build": "npx rollup -c",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "lint:staged": "npx lint-staged",
@@ -98,5 +104,6 @@
     "release:patch": "standard-version --release-as patch",
     "release:major": "standard-version --release-as major"
   },
-  "type": "module"
+  "type": "module",
+  "types": "dist/types/index.d.ts"
 }
