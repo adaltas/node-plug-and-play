@@ -6,6 +6,6 @@
     "composite": true,
     "outDir": "./dist/esm",
     "declarationDir": "dist/types",
-    "rootDir": "./src",
+    "rootDir": "./src"
   }
 }

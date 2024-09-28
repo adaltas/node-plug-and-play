@@ -5,7 +5,7 @@ import prettier from "eslint-plugin-prettier/recommended";
 
 export default [
   {
-    ignores: ["dist/**"],
+    ignores: ["dist/**", "docs/types/**", ".*"],
   },
   {
     languageOptions: { globals: { ...globals.node } },
