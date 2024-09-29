@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// Usage
+//
+// node samples/simple-js/index.js
+
 import { plugins, print } from "./lib.js";
 
 plugins.register({

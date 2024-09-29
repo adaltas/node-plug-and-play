@@ -37,7 +37,6 @@
     "rollup-plugin-typescript2": "^0.36.0",
     "should": "~13.2.3",
     "standard-version": "^9.5.0",
-    "ts-node": "^10.9.2",
     "tsx": "^4.16.5",
     "typedoc": "^0.26.5",
     "typedoc-plugin-markdown": "^4.2.3",
@@ -74,7 +73,7 @@
   "main": "dist/esm/index.js",
   "mocha": {
     "inline-diffs": true,
-    "loader": "ts-node/esm",
+    "import": "tsx",
     "recursive": true,
     "reporter": "spec",
     "require": [
