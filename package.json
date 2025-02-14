@@ -94,7 +94,7 @@
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "lint:staged": "npx lint-staged",
-    "prepare": "husky install",
+    "prepare": "husky",
     "prepublishOnly": "git push --follow-tags origin master",
     "pretest": "npm run build",
     "test": "mocha 'test/**/*.ts' 'test/**/*.js'",
