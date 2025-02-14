@@ -1,4 +1,4 @@
-import { plugandplay } from "../dist/esm/index.js";
+import { plugandplay } from "../dist/index.js";
 
 describe("plugandplay.register", function () {
   it("when plugin not an nor a function", function () {

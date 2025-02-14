@@ -1,4 +1,4 @@
-import { plugandplay } from "../dist/esm/index.js";
+import { plugandplay } from "../dist/index.js";
 
 describe("option.chain", function () {
   it("with option.plugin", async function () {

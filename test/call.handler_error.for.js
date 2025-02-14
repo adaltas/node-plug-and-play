@@ -1,4 +1,4 @@
-import { plugandplay } from "../dist/esm/index.js";
+import { plugandplay } from "../dist/index.js";
 
 describe("plugandplay.call.handler_error", function () {
   it("throw `ReferenceError: not defined` error, no handler", async function () {

@@ -1,4 +1,4 @@
-import { plugandplay } from "../dist/esm/index.js";
+import { plugandplay } from "../dist/index.js";
 
 describe("plugandplay.call_sync.args", function () {
   it("expect 1 argument", function () {
