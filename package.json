@@ -38,8 +38,8 @@
     "should": "~13.2.3",
     "standard-version": "^9.5.0",
     "tsx": "^4.16.5",
-    "typedoc": "^0.26.5",
-    "typedoc-plugin-markdown": "^4.2.3",
+    "typedoc": "^0.27.7",
+    "typedoc-plugin-markdown": "^4.4.2",
     "typescript": "^5.5.4"
   },
   "exports": {
